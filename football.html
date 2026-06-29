@@ -110,6 +110,57 @@
         </div>
       </div>
     </section>
+
+    <!-- World Cup Winners by Year -->
+    <section>
+      <div class="container">
+        <div class="section-header" style="text-align:left;margin-bottom:20px;">
+          <h2>🏆 FIFA World Cup Winners</h2>
+          <p>Every edition from 1930 to 2022 · Latest final details via TheSportsDB API</p>
+        </div>
+        <div id="wc-winners-grid" class="wc-grid">
+          <div class="spinner-wrap"><div class="spinner"></div><p>Loading…</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- European Team Finder -->
+    <section class="alt-bg">
+      <div class="container">
+        <div class="section-header" style="text-align:left;margin-bottom:12px;">
+          <h2>🔍 European Team Finder</h2>
+          <p>Search any club — see their league, country and founding year · Live from TheSportsDB</p>
+        </div>
+        <div class="controls-bar">
+          <input type="search" class="search-input" id="team-search-input"
+            placeholder="e.g. Barcelona, Arsenal, Juventus…"
+            aria-label="Search teams" autocomplete="off">
+        </div>
+        <div id="team-search-results" style="margin-top:16px;"></div>
+      </div>
+    </section>
+
+    <!-- League Standings (interesting addition) -->
+    <section>
+      <div class="container">
+        <div class="section-header" style="text-align:left;margin-bottom:12px;">
+          <h2>📊 Current League Standings</h2>
+          <p>Live table for the selected league · Updated from TheSportsDB</p>
+        </div>
+        <div class="controls-bar" style="margin-bottom:16px;">
+          <select class="select-input" id="standings-league-select" aria-label="Select league for standings">
+            <option value="4328">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</option>
+            <option value="4335">🇪🇸 La Liga</option>
+            <option value="4331">🇩🇪 Bundesliga</option>
+            <option value="4332">🇮🇹 Serie A</option>
+            <option value="4334">🇫🇷 Ligue 1</option>
+          </select>
+        </div>
+        <div id="standings-container">
+          <div class="spinner-wrap"><div class="spinner"></div><p>Loading standings…</p></div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="footer">

@@ -179,8 +179,8 @@ export function initLiveTicker() {
   }
 
   function buildItems(events) {
-    const items = events.map((e) => {
-      /* For live matches show current minute; for finished show kick-off time or date */
+    const sep = '<span class="ticker-sep">•</span>';
+    const row = events.map((e) => {
       let timePart = '';
       if (e.isLive) {
         const min = e.progress || e.status;
@@ -189,8 +189,11 @@ export function initLiveTicker() {
         timePart = ` <span class="ticker-time">${e.time}</span>`;
       }
       return `<span class="ticker-item">${e.home} <strong>${e.homeScore}–${e.awayScore}</strong> ${e.away}${timePart} <em>(${e.league})</em></span>`;
-    }).join('<span class="ticker-sep">•</span>');
-    return items + '<span class="ticker-sep">•</span>' + items;
+    }).join(sep);
+    // repeat enough times so there's always enough content for smooth scrolling
+    const repeats = Math.max(2, Math.ceil(8 / events.length));
+    const base = Array(repeats).fill(row).join(sep);
+    return base + sep + base; // -50% animation point
   }
 
   async function loadTicker() {
@@ -205,6 +208,10 @@ export function initLiveTicker() {
       if (live.length) {
         setLabel('LIVE', true);
         ticker.innerHTML = buildItems(live.slice(0, 20));
+        ticker.style.animation = 'none';
+        ticker.offsetHeight; // force reflow
+        const duration = Math.max(15, live.slice(0, 20).length * 6);
+        ticker.style.animation = `ticker-scroll ${duration}s linear infinite`;
         return;
       }
 
@@ -214,6 +221,10 @@ export function initLiveTicker() {
       const recent = plEvent.length ? plEvent : await fetchLeaguePastEvents('4387', 1);
       if (recent.length) {
         ticker.innerHTML = buildItems(recent.slice(0, 1));
+        ticker.style.animation = 'none';
+        ticker.offsetHeight; // force reflow
+        const duration = Math.max(15, recent.slice(0, 1).length * 6);
+        ticker.style.animation = `ticker-scroll ${duration}s linear infinite`;
       } else {
         ticker.innerHTML = '<span class="ticker-item">No live matches right now — check back soon!</span>';
       }

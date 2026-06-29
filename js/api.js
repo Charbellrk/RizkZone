@@ -271,3 +271,40 @@ export async function fetchESPNNBAScorers() {
   }
   return [];
 }
+
+/* Search European football teams by name */
+export async function searchTeams(query) {
+  if (!query || query.trim().length < 2) return [];
+  const data = await fetchJson(`${API_BASE}/searchteams.php?t=${encodeURIComponent(query.trim())}`);
+  return (data.teams || [])
+    .filter((t) => t.strSport === 'Soccer')
+    .slice(0, 12);
+}
+
+/* Fetch current season league standings table */
+export async function fetchLeagueTable(leagueId) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const startYear = month >= 8 ? year : year - 1;
+  const season = `${startYear}-${startYear + 1}`;
+  try {
+    const data = await fetchJson(`${API_BASE}/lookuptable.php?l=${leagueId}&s=${season}`);
+    return data.table || [];
+  } catch {
+    return [];
+  }
+}
+
+/* Fetch the World Cup final match for a given year from TheSportsDB */
+export async function fetchWorldCupFinal(year) {
+  try {
+    const data = await fetchJson(`${API_BASE}/eventsseason.php?id=4429&s=${year}`);
+    const events = (data.events || [])
+      .filter((e) => e.intHomeScore !== null && e.intHomeScore !== undefined && String(e.intHomeScore) !== '')
+      .sort((a, b) => new Date(b.dateEvent) - new Date(a.dateEvent));
+    return events[0] ? normalizeEvent(events[0]) : null;
+  } catch {
+    return null;
+  }
+}
