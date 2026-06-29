@@ -1,0 +1,9 @@
+{
+  "name": "arena-sports",
+  "version": "1.0.0",
+  "description": "Modern sports website with live data, player stats, and mini games",
+  "scripts": {
+    "start": "npx --yes serve . -p 3000",
+    "dev": "npx --yes serve . -p 3000"
+  }
+}

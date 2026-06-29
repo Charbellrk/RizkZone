@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football — Arena Sports</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="ticker-bar">
+    <span class="ticker-label">LIVE</span>
+    <div class="ticker-track">
+      <div class="ticker-content" id="live-ticker">
+        <span class="ticker-item">Loading live scores...</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-icon">⚽</span>
+        Arena Sports
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="football.html" class="nav-link">Football</a></li>
+        <li><a href="basketball.html" class="nav-link">Basketball</a></li>
+        <li><a href="players.html" class="nav-link">Players</a></li>
+        <li><a href="games.html" class="nav-link">Mini Games</a></li>
+      </ul>
+      <div class="nav-auth-wrap">
+        <span class="nav-user hidden" id="nav-user"></span>
+        <a href="login.html" class="btn-auth" id="nav-auth">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="guest-banner hidden" id="guest-banner">
+    Guest mode: showing top 9 matches. <a href="login.html">Login</a> to see all 15.
+  </div>
+
+  <header class="page-header">
+    <div class="container">
+      <h1>⚽ Football</h1>
+      <p>Browse matches, filter by league, and explore all-time top scorers</p>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="container">
+        <div class="controls-bar">
+          <select class="select-input" id="league-filter" aria-label="Filter by league">
+            <option value="all">All Leagues</option>
+            <option value="premier">Premier League</option>
+            <option value="laliga">La Liga</option>
+            <option value="seriea">Serie A</option>
+            <option value="bundesliga">Bundesliga</option>
+            <option value="ligue1">Ligue 1</option>
+            <option value="champions">Champions League</option>
+          </select>
+          <button class="btn btn-accent" id="world-cup-btn">🏆 World Cup Matches</button>
+        </div>
+
+        <div class="section-header" style="text-align:left;margin-bottom:20px;">
+          <h2>Latest Matches</h2>
+          <p id="match-count-label">Loading matches...</p>
+        </div>
+
+        <div id="matches-container">
+          <div class="spinner-wrap"><div class="spinner"></div><p>Fetching football data...</p></div>
+        </div>
+
+        <div class="pagination" id="pagination">
+          <button id="prev-page" disabled>← Previous</button>
+          <span class="page-info" id="page-info">Page 1</span>
+          <button id="next-page">Next →</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="alt-bg">
+      <div class="container">
+        <div class="section-header" style="text-align:left;">
+          <h2>All-Time Top Scorers</h2>
+          <p>Filter the table to find your favorite legends</p>
+        </div>
+        <div class="controls-bar">
+          <input type="search" class="search-input" id="scorer-search" placeholder="Search by name or country..." aria-label="Search scorers">
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table" id="scorers-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Country</th>
+                <th>Goals</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="scorers-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">© 2026 Arena Sports. Football data via TheSportsDB.</div>
+    </div>
+  </footer>
+
+  <script type="module" src="js/football.js"></script>
+</body>
+</html>

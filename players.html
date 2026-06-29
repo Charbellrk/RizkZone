@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Players — Arena Sports</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="ticker-bar">
+    <span class="ticker-label">LIVE</span>
+    <div class="ticker-track">
+      <div class="ticker-content" id="live-ticker">
+        <span class="ticker-item">Loading live scores...</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-icon">⚽</span>
+        Arena Sports
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="football.html" class="nav-link">Football</a></li>
+        <li><a href="basketball.html" class="nav-link">Basketball</a></li>
+        <li><a href="players.html" class="nav-link">Players</a></li>
+        <li><a href="games.html" class="nav-link">Mini Games</a></li>
+      </ul>
+      <div class="nav-auth-wrap">
+        <span class="nav-user hidden" id="nav-user"></span>
+        <a href="login.html" class="btn-auth" id="nav-auth">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <div class="container">
+      <h1>⭐ Players</h1>
+      <p>Explore the greatest scorers in football and basketball history</p>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="container">
+        <div class="toggle-group" role="tablist">
+          <button class="toggle-btn active" data-sport="football" role="tab" aria-selected="true">⚽ Football</button>
+          <button class="toggle-btn" data-sport="basketball" role="tab" aria-selected="false">🏀 Basketball</button>
+        </div>
+
+        <div class="controls-bar">
+          <input type="search" class="search-input" id="player-search" placeholder="Search players by name or country..." aria-label="Search players">
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table" id="players-table">
+            <thead id="players-thead"></thead>
+            <tbody id="players-body"></tbody>
+          </table>
+        </div>
+        <p style="margin-top:16px;color:var(--text-muted);font-size:0.85rem;">Click any player row to view detailed statistics.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">© 2026 Arena Sports. Player data curated by our editorial team.</div>
+    </div>
+  </footer>
+
+  <script type="module" src="js/players.js"></script>
+</body>
+</html>

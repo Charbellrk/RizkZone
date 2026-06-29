@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Arena Sports</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-icon">⚽</span>
+        Arena Sports
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="football.html" class="nav-link">Football</a></li>
+        <li><a href="basketball.html" class="nav-link">Basketball</a></li>
+        <li><a href="players.html" class="nav-link">Players</a></li>
+        <li><a href="games.html" class="nav-link">Mini Games</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="auth-page">
+    <div class="auth-card">
+      <h1 style="text-align:center;margin-bottom:8px;">Welcome to Arena Sports</h1>
+      <p style="text-align:center;color:var(--text-muted);margin-bottom:24px;">Sign in for full access or continue as a guest</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Login</button>
+        <button class="auth-tab" data-tab="register">Register</button>
+      </div>
+
+      <div id="auth-message" class="auth-message hidden"></div>
+
+      <form class="auth-form" id="login-form">
+        <div class="form-group">
+          <label for="login-username">Username</label>
+          <input type="text" id="login-username" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Sign In</button>
+      </form>
+
+      <form class="auth-form hidden" id="register-form">
+        <div class="form-group">
+          <label for="reg-username">Username</label>
+          <input type="text" id="reg-username" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Email</label>
+          <input type="email" id="reg-email" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input type="password" id="reg-password" required minlength="6" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Create Account</button>
+      </form>
+
+      <div class="auth-divider">or</div>
+      <button class="btn-guest" id="guest-btn">Continue as Guest</button>
+
+      <div style="margin-top:24px;padding:16px;background:var(--bg-elevated);border-radius:10px;font-size:0.85rem;color:var(--text-muted);">
+        <strong style="color:var(--text);">Guest vs. Member</strong>
+        <ul style="margin-top:8px;padding-left:20px;">
+          <li>Guests: 9 matches, 1 mini game</li>
+          <li>Members: 15 matches, both mini games, full access</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/login.js"></script>
+</body>
+</html>
