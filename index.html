@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Arena Sports — Home</title>
+  <title>RizkZone — Home</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+<script>if(localStorage.getItem('nightMode')==='true'){document.body.classList.add('night-mode');}</script>
+
   <div class="ticker-bar">
     <span class="ticker-label">LIVE</span>
     <div class="ticker-track">
@@ -19,17 +21,18 @@
   <nav class="navbar">
     <div class="container nav-inner">
       <a href="index.html" class="nav-brand">
-        <span class="brand-icon">⚽</span>
-        Arena Sports
+        <span class="brand-icon">⚽<span class="spin-ball">🏀</span></span>
+        RizkZone
       </a>
       <ul class="nav-links">
         <li><a href="index.html" class="nav-link">Home</a></li>
-        <li><a href="football.html" class="nav-link">Football</a></li>
-        <li><a href="basketball.html" class="nav-link">Basketball</a></li>
+        <li><a href="football.html" class="nav-link">⚽ Football</a></li>
+        <li><a href="basketball.html" class="nav-link">🏀 Basketball</a></li>
         <li><a href="players.html" class="nav-link">Players</a></li>
         <li><a href="games.html" class="nav-link">Mini Games</a></li>
       </ul>
       <div class="nav-auth-wrap">
+        <button class="night-mode-btn" id="night-mode-toggle" title="Toggle night mode">🌙</button>
         <span class="nav-user hidden" id="nav-user"></span>
         <a href="login.html" class="btn-auth" id="nav-auth">Login</a>
       </div>
@@ -43,11 +46,11 @@
   <header class="hero">
     <div class="container hero-content">
       <div class="hero-logo" aria-hidden="true">🏆</div>
-      <h1>Arena Sports</h1>
+      <h1>RizkZone</h1>
       <p class="hero-tagline">Your ultimate destination for live scores, match stats, player rankings, and interactive sports games.</p>
       <div class="hero-buttons">
-        <a href="football.html" class="btn btn-primary">Explore Football</a>
-        <a href="basketball.html" class="btn btn-secondary">Explore Basketball</a>
+        <a href="football.html" class="btn btn-primary">⚽ Explore Football</a>
+        <a href="basketball.html" class="btn btn-secondary">🏀 Explore Basketball</a>
       </div>
     </div>
   </header>
@@ -68,7 +71,7 @@
     <div class="container">
       <div class="section-header">
         <h2>By the Numbers</h2>
-        <p>What makes Arena Sports the go-to platform for fans</p>
+        <p>What makes RizkZone the go-to platform for fans</p>
       </div>
       <div class="counters-grid">
         <div class="counter-card">
@@ -131,7 +134,7 @@
       </div>
       <div class="fact-box">
         <p id="random-fact"></p>
-        <button class="btn btn-secondary fact-refresh" id="new-fact-btn">Another Fact</button>
+        <button class="btn fact-refresh" id="new-fact-btn">Another Fact ↻</button>
       </div>
     </div>
   </section>
@@ -139,7 +142,9 @@
   <section id="faq">
     <div class="container">
       <div class="section-header">
+        <div class="faq-badge">❓ Need Answers?</div>
         <h2>Frequently Asked Questions</h2>
+        <p>Everything you need to know about RizkZone — answered clearly and quickly</p>
       </div>
       <div class="faq-list" id="faq-list"></div>
     </div>
@@ -149,14 +154,14 @@
     <div class="container">
       <div class="footer-grid">
         <div>
-          <h4>Arena Sports</h4>
+          <h4>RizkZone</h4>
           <p>Your modern sports hub for live data, statistics, and interactive fan experiences.</p>
         </div>
         <div>
           <h4>Quick Links</h4>
           <ul>
-            <li><a href="football.html">Football</a></li>
-            <li><a href="basketball.html">Basketball</a></li>
+            <li><a href="football.html">⚽ Football</a></li>
+            <li><a href="basketball.html">🏀 Basketball</a></li>
             <li><a href="players.html">Players</a></li>
             <li><a href="games.html">Mini Games</a></li>
           </ul>
@@ -166,13 +171,14 @@
           <p>Live sports data powered by TheSportsDB API. Statistics and facts curated by our editorial team.</p>
         </div>
         <div>
-          <h4>Contact</h4>
-          <p>Email: info@arenasports.com</p>
-          <p>© 2026 Arena Sports. All rights reserved.</p>
+          <h4>Contact Us</h4>
+          <p>📧 <a class="footer-contact-link" href="mailto:charbel04rk@gmail.com">charbel04rk@gmail.com</a></p>
+          <p>💬 WhatsApp: <a class="footer-contact-link" href="https://wa.me/96170267806">70/267806</a></p>
+          <p style="margin-top:8px;">© 2026 RizkZone. All rights reserved.</p>
         </div>
       </div>
       <div class="footer-bottom">
-        Built with passion for sports fans everywhere.
+        Built with passion for sports fans everywhere — RizkZone 🏆
       </div>
     </div>
   </footer>

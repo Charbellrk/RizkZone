@@ -1,5 +1,5 @@
 import { login, register, loginAsGuest, getSession } from './auth.js';
-import { initNav } from './ui.js';
+import { initNav, initNightMode } from './ui.js';
 
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
@@ -79,3 +79,4 @@ if (getSession()) {
 }
 
 initNav();
+initNightMode();

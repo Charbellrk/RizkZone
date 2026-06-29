@@ -97,7 +97,7 @@ export function logout() {
 }
 
 export function getMatchLimit() {
-  return isLoggedIn() ? 15 : 9;
+  return isLoggedIn() ? 18 : 9;
 }
 
 export function canAccessGame(gameId) {

@@ -6,7 +6,7 @@ import {
   canAccessGame,
   setGuestGameChoice,
 } from './auth.js';
-import { initLiveTicker, initNav } from './ui.js';
+import { initLiveTicker, initNav, initNightMode } from './ui.js';
 
 function setupAccessControl() {
   const session = getSession();
@@ -294,6 +294,7 @@ class FreeThrowGame {
 
 updateNavAuth();
 initNav();
+initNightMode();
 initLiveTicker();
 
 if (setupAccessControl()) {

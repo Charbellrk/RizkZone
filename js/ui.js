@@ -31,14 +31,26 @@ export function showEmpty(container, message = 'No results available at the mome
 export function createMatchCard(match, onClick) {
   const card = document.createElement('article');
   card.className = 'match-card fade-in';
+
+  /* Live badge + current minute, or kick-off date/time for finished matches */
+  let timeLine = '';
+  if (match.isLive) {
+    const min = match.progress || match.status || 'LIVE';
+    timeLine = `<div class="match-meta"><span class="match-live-badge">● LIVE</span> <span class="match-live-min">${min}</span></div>`;
+  } else {
+    const datePart = match.date || '';
+    const timePart = match.time ? ` • ${match.time}` : '';
+    timeLine = `<div class="match-meta">${datePart}${timePart}</div>`;
+  }
+
   card.innerHTML = `
     <div class="match-league">${match.league}</div>
     <div class="match-teams">
       <span class="team">${match.home}</span>
-      <span class="match-score">${match.homeScore} - ${match.awayScore}</span>
+      <span class="match-score">${match.homeScore} – ${match.awayScore}</span>
       <span class="team">${match.away}</span>
     </div>
-    <div class="match-meta">${match.date} ${match.time ? `• ${match.time}` : ''}</div>
+    ${timeLine}
   `;
   if (onClick) {
     card.style.cursor = 'pointer';
@@ -157,32 +169,56 @@ export function initCounters() {
 
 export function initLiveTicker() {
   const ticker = document.getElementById('live-ticker');
+  const label  = document.querySelector('.ticker-label');
   if (!ticker) return;
+
+  function setLabel(text, isLive) {
+    if (!label) return;
+    label.textContent = text;
+    label.style.background = isLive ? '#e53e3e' : '#1a56db';
+  }
+
+  function buildItems(events) {
+    const items = events.map((e) => {
+      /* For live matches show current minute; for finished show kick-off time or date */
+      let timePart = '';
+      if (e.isLive) {
+        const min = e.progress || e.status;
+        timePart = min ? ` <span class="ticker-time">${min}</span>` : '';
+      } else if (e.time) {
+        timePart = ` <span class="ticker-time">${e.time}</span>`;
+      }
+      return `<span class="ticker-item">${e.home} <strong>${e.homeScore}–${e.awayScore}</strong> ${e.away}${timePart} <em>(${e.league})</em></span>`;
+    }).join('<span class="ticker-sep">•</span>');
+    return items + '<span class="ticker-sep">•</span>' + items;
+  }
 
   async function loadTicker() {
     try {
-      const { fetchLiveScores } = await import('./api.js');
+      const { fetchLiveScores, fetchLeaguePastEvents } = await import('./api.js');
       const [soccer, basketball] = await Promise.all([
         fetchLiveScores('Soccer'),
         fetchLiveScores('Basketball'),
       ]);
-      const events = [...soccer, ...basketball].slice(0, 20);
+      const live = [...soccer, ...basketball];
 
-      if (!events.length) {
-        ticker.innerHTML = '<span class="ticker-item">No live scores today — check back soon!</span>';
+      if (live.length) {
+        setLabel('LIVE', true);
+        ticker.innerHTML = buildItems(live.slice(0, 20));
         return;
       }
 
-      const items = events
-        .map(
-          (e) =>
-            `<span class="ticker-item">${e.home} ${e.homeScore}-${e.awayScore} ${e.away} <em>(${e.league})</em></span>`
-        )
-        .join('<span class="ticker-sep">•</span>');
-
-      ticker.innerHTML = items + items;
+      /* No live matches — show the single most recent past match */
+      setLabel('LATEST', false);
+      const [plEvent] = await Promise.all([fetchLeaguePastEvents('4328', 1)]);
+      const recent = plEvent.length ? plEvent : await fetchLeaguePastEvents('4387', 1);
+      if (recent.length) {
+        ticker.innerHTML = buildItems(recent.slice(0, 1));
+      } else {
+        ticker.innerHTML = '<span class="ticker-item">No live matches right now — check back soon!</span>';
+      }
     } catch {
-      ticker.innerHTML = '<span class="ticker-item">Live scores temporarily unavailable</span>';
+      ticker.innerHTML = '<span class="ticker-item">Scores temporarily unavailable</span>';
     }
   }
 
@@ -197,5 +233,24 @@ export function initNav() {
     if (href === path || (path === '' && href === 'index.html')) {
       link.classList.add('active');
     }
+  });
+}
+
+export function initNightMode() {
+  const btn = document.getElementById('night-mode-toggle');
+  if (!btn) return;
+
+  const apply = (isNight) => {
+    document.body.classList.toggle('night-mode', isNight);
+    btn.textContent = isNight ? '☀️' : '🌙';
+    btn.title = isNight ? 'Switch to day mode' : 'Switch to night mode';
+  };
+
+  apply(localStorage.getItem('nightMode') === 'true');
+
+  btn.addEventListener('click', () => {
+    const isNight = document.body.classList.contains('night-mode');
+    apply(!isNight);
+    localStorage.setItem('nightMode', String(!isNight));
   });
 }

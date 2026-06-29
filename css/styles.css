@@ -7,19 +7,27 @@
 }
 
 :root {
-  --bg-dark: #0a0e17;
-  --bg-card: #12182a;
-  --bg-elevated: #1a2238;
-  --accent: #00d4aa;
+  /* Day mode — Royal Blue + White */
+  --bg-dark: #f0f5ff;
+  --bg-card: #ffffff;
+  --bg-elevated: #dde8f8;
+  --accent: #1a56db;
   --accent-2: #ff6b35;
-  --accent-3: #4dabf7;
-  --text: #e8ecf4;
-  --text-muted: #8892a8;
-  --border: rgba(255, 255, 255, 0.08);
-  --gradient-hero: linear-gradient(135deg, #0a0e17 0%, #1a1040 50%, #0d2137 100%);
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --accent-3: #1971c2;
+  --text: #0d1e35;
+  --text-muted: #4a5568;
+  --border: rgba(26, 86, 219, 0.18);
+  --gradient-hero: linear-gradient(135deg, #0d3b7c 0%, #1a56db 60%, #1971c2 100%);
+  --shadow: 0 8px 32px rgba(14, 50, 120, 0.12);
   --radius: 12px;
   --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* Navbar */
+  --navbar-bg: #1a56db;
+  --nav-link-color: rgba(255, 255, 255, 0.78);
+  --nav-brand-color: #ffffff;
+  --nav-active-bg: rgba(255, 255, 255, 0.18);
+  --nav-active-color: #ffffff;
+  --nav-hover-bg: rgba(255, 255, 255, 0.12);
 }
 
 html {
@@ -32,6 +40,27 @@ body {
   color: var(--text);
   line-height: 1.6;
   min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* Night mode overrides */
+body.night-mode {
+  --bg-dark: #0a0a0f;
+  --bg-card: #12182a;
+  --bg-elevated: #1a2238;
+  --accent: #3b82f6;
+  --accent-3: #60a5fa;
+  --text: #e8ecf4;
+  --text-muted: #8892a8;
+  --border: rgba(255, 255, 255, 0.08);
+  --gradient-hero: linear-gradient(135deg, #0a0a0f 0%, #0d1f3c 50%, #1a2238 100%);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --navbar-bg: rgba(10, 10, 15, 0.95);
+  --nav-link-color: #8892a8;
+  --nav-brand-color: #e8ecf4;
+  --nav-active-bg: #1a2238;
+  --nav-active-color: #3b82f6;
+  --nav-hover-bg: #1a2238;
 }
 
 a {
@@ -41,7 +70,7 @@ a {
 }
 
 a:hover {
-  color: #33e0be;
+  color: var(--accent-3);
 }
 
 img {
@@ -119,9 +148,10 @@ img {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(10, 14, 23, 0.92);
+  background: var(--navbar-bg);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 .nav-inner {
@@ -138,21 +168,30 @@ img {
   gap: 10px;
   font-weight: 800;
   font-size: 1.25rem;
-  color: var(--text);
+  color: var(--nav-brand-color);
 }
 
 .nav-brand:hover {
-  color: var(--accent);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .brand-icon {
-  width: 36px;
-  height: 36px;
-  background: conic-gradient(from 0deg, var(--accent), var(--accent-3), var(--accent-2), var(--accent));
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 1rem;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.spin-ball {
+  display: inline-block;
+  animation: spin-ball 5s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes spin-ball {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .nav-links {
@@ -165,51 +204,93 @@ img {
 .nav-link {
   padding: 8px 14px;
   border-radius: 8px;
-  color: var(--text-muted);
+  color: var(--nav-link-color);
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.2s;
 }
 
-.nav-link:hover,
-.nav-link.active {
-  color: var(--text);
-  background: var(--bg-elevated);
+.nav-link:hover {
+  color: #ffffff;
+  background: var(--nav-hover-bg);
 }
 
 .nav-link.active {
-  color: var(--accent);
+  color: var(--nav-active-color);
+  background: var(--nav-active-bg);
+  font-weight: 600;
 }
 
 .nav-auth-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .nav-user {
   font-size: 0.8rem;
   padding: 4px 10px;
-  background: var(--bg-elevated);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 20px;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+body.night-mode .nav-user {
+  background: var(--bg-elevated);
   color: var(--accent);
-  border: 1px solid var(--border);
+  border-color: var(--border);
 }
 
 .btn-auth {
   padding: 8px 18px;
-  background: var(--accent);
-  color: var(--bg-dark);
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
   border-radius: 8px;
   font-weight: 600;
   font-size: 0.85rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .btn-auth:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 212, 170, 0.3);
-  color: var(--bg-dark);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+body.night-mode .btn-auth {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* Night Mode Toggle Button */
+.night-mode-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: all 0.2s;
+  color: #fff;
+}
+
+.night-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+body.night-mode .night-mode-btn {
+  background: var(--bg-elevated);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+body.night-mode .night-mode-btn:hover {
+  background: var(--bg-card);
 }
 
 /* Guest Banner */
@@ -240,8 +321,8 @@ img {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 30% 50%, rgba(0, 212, 170, 0.08) 0%, transparent 50%),
-              radial-gradient(circle at 70% 50%, rgba(77, 171, 247, 0.08) 0%, transparent 50%);
+  background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+              radial-gradient(circle at 70% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
 }
 
 .hero-content {
@@ -253,13 +334,10 @@ img {
   width: 120px;
   height: 120px;
   margin: 0 auto 24px;
-  background: conic-gradient(from 0deg, var(--accent), var(--accent-3), var(--accent-2), var(--accent));
-  border-radius: 50%;
   display: grid;
   place-items: center;
   font-size: 3rem;
   animation: logo-rotate 6s linear infinite;
-  box-shadow: 0 0 60px rgba(0, 212, 170, 0.3);
 }
 
 @keyframes logo-rotate {
@@ -271,7 +349,7 @@ img {
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 800;
   margin-bottom: 12px;
-  background: linear-gradient(135deg, var(--text), var(--accent));
+  background: linear-gradient(135deg, #ffffff, rgba(255, 255, 255, 0.75));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -279,7 +357,7 @@ img {
 
 .hero-tagline {
   font-size: 1.15rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.78);
   margin-bottom: 36px;
   max-width: 600px;
   margin-left: auto;
@@ -309,24 +387,44 @@ img {
 
 .btn-primary {
   background: var(--accent);
-  color: var(--bg-dark);
+  color: #fff;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 212, 170, 0.35);
-  color: var(--bg-dark);
+  box-shadow: 0 8px 24px rgba(26, 86, 219, 0.4);
+  color: #fff;
+  background: var(--accent-3);
 }
 
 .btn-secondary {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Secondary buttons inside sections/cards (not on hero gradient) */
+section .btn-secondary,
+.game-controls .btn-secondary,
+main .btn-secondary {
+  background: var(--bg-elevated);
   color: var(--text);
   border: 2px solid var(--border);
 }
 
-.btn-secondary:hover {
-  border-color: var(--accent-3);
-  color: var(--accent-3);
+section .btn-secondary:hover,
+.game-controls .btn-secondary:hover,
+main .btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--bg-elevated);
   transform: translateY(-2px);
 }
 
@@ -374,6 +472,7 @@ section {
   padding: 32px 24px;
   text-align: center;
   transition: transform 0.3s, border-color 0.3s;
+  box-shadow: var(--shadow);
 }
 
 .counter-card:hover {
@@ -405,6 +504,7 @@ section {
   text-align: center;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow);
 }
 
 .featured-match::before {
@@ -477,6 +577,7 @@ section {
   border-radius: var(--radius);
   border: 1px solid var(--border);
   overflow: hidden;
+  box-shadow: var(--shadow);
 }
 
 .hof-card-front {
@@ -487,6 +588,7 @@ section {
   width: 100%;
   height: 200px;
   object-fit: cover;
+  background: var(--bg-elevated);
 }
 
 .hof-card-front .hof-info {
@@ -503,7 +605,7 @@ section {
 }
 
 .hof-card-back {
-  background: var(--bg-elevated);
+  background: var(--accent);
   transform: rotateY(180deg);
   display: flex;
   flex-direction: column;
@@ -514,19 +616,25 @@ section {
 
 .hof-card-back h3 {
   margin-bottom: 16px;
-  color: var(--accent);
+  color: #ffffff;
 }
 
 .hof-stat {
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
   font-size: 0.9rem;
+  color: #fff;
 }
 
 .hof-stat dt {
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.hof-stat dd {
+  color: #fff;
+  font-weight: 600;
 }
 
 /* Stats Highlights */
@@ -542,18 +650,19 @@ section {
   border-radius: var(--radius);
   padding: 28px;
   transition: transform 0.3s;
+  box-shadow: var(--shadow);
 }
 
 .highlight-card:hover {
   transform: translateY(-4px);
-  border-color: var(--accent-3);
+  border-color: var(--accent);
 }
 
 .highlight-card .label {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--accent-3);
+  color: var(--accent);
   margin-bottom: 8px;
 }
 
@@ -587,20 +696,55 @@ section {
   border-radius: var(--radius);
   padding: 20px;
   transition: all 0.25s;
+  box-shadow: var(--shadow);
 }
 
 .match-card:hover {
   border-color: var(--accent);
   transform: translateY(-2px);
-  box-shadow: var(--shadow);
+  box-shadow: 0 12px 36px rgba(26, 86, 219, 0.15);
 }
 
+/* League indicator banner (football page) */
+.league-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 10px rgba(26, 86, 219, 0.25);
+}
+
+.league-indicator--all {
+  background: var(--bg-elevated);
+  color: var(--text);
+  box-shadow: none;
+  border: 1px solid var(--border);
+}
+
+body.night-mode .league-indicator--all {
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+/* Match card league badge — colored per-league via inline style override */
 .match-league {
-  font-size: 0.75rem;
-  color: var(--accent-3);
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 3px 10px;
+  border-radius: 20px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
   margin-bottom: 12px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
 }
 
 .match-teams {
@@ -633,15 +777,45 @@ section {
   color: var(--text-muted);
 }
 
+.match-live-badge {
+  display: inline-block;
+  background: #e53e3e;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+.match-live-min {
+  font-weight: 700;
+  color: #e53e3e;
+  font-size: 0.85rem;
+}
+
+.ticker-time {
+  font-weight: 700;
+  color: #ffd700;
+  font-size: 0.82rem;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
 /* Did You Know */
 .fact-box {
-  background: linear-gradient(135deg, var(--bg-card), var(--bg-elevated));
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 32px;
   text-align: center;
   max-width: 800px;
   margin: 0 auto;
+  box-shadow: var(--shadow);
 }
 
 .fact-box p {
@@ -653,11 +827,53 @@ section {
 
 .fact-refresh {
   margin-top: 20px;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 2px solid var(--border);
 }
 
-/* FAQ */
+.fact-refresh:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+
+/* FAQ — Emphasized */
+#faq {
+  background: linear-gradient(135deg, rgba(26, 86, 219, 0.06) 0%, rgba(25, 113, 194, 0.04) 100%);
+  position: relative;
+}
+
+body.night-mode #faq {
+  background: rgba(59, 130, 246, 0.04);
+}
+
+.faq-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 14px;
+}
+
+#faq .section-header h2 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 800;
+  color: var(--accent);
+}
+
+#faq .section-header p {
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
 .faq-list {
-  max-width: 800px;
+  max-width: 820px;
   margin: 0 auto;
 }
 
@@ -667,6 +883,12 @@ section {
   margin-bottom: 12px;
   overflow: hidden;
   background: var(--bg-card);
+  box-shadow: var(--shadow);
+  transition: border-color 0.2s;
+}
+
+.faq-item:hover {
+  border-color: var(--accent);
 }
 
 .faq-question {
@@ -693,6 +915,9 @@ section {
 .faq-icon {
   transition: transform 0.3s;
   color: var(--accent);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-left: 12px;
 }
 
 .faq-item.open .faq-icon {
@@ -702,9 +927,10 @@ section {
 .faq-answer {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease, padding 0.3s ease;
+  transition: max-height 0.35s ease, padding 0.3s ease;
   padding: 0 24px;
   color: var(--text-muted);
+  line-height: 1.75;
 }
 
 .faq-item.open .faq-answer {
@@ -729,6 +955,7 @@ section {
 .footer h4 {
   margin-bottom: 12px;
   color: var(--accent);
+  font-size: 1rem;
 }
 
 .footer p,
@@ -743,6 +970,15 @@ section {
 
 .footer li {
   margin-bottom: 6px;
+}
+
+.footer a {
+  color: var(--accent);
+}
+
+.footer-contact-link {
+  color: var(--accent);
+  font-weight: 500;
 }
 
 .footer-bottom {
@@ -763,10 +999,11 @@ section {
 .page-header h1 {
   font-size: clamp(1.8rem, 4vw, 2.8rem);
   margin-bottom: 8px;
+  color: #ffffff;
 }
 
 .page-header p {
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 /* Filters & Controls */
@@ -787,12 +1024,14 @@ section {
   color: var(--text);
   font-family: inherit;
   font-size: 0.9rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .select-input:focus,
 .search-input:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.15);
 }
 
 .search-input {
@@ -815,12 +1054,15 @@ section {
   color: var(--text);
   cursor: pointer;
   font-family: inherit;
+  font-weight: 500;
   transition: all 0.2s;
+  box-shadow: var(--shadow);
 }
 
 .pagination button:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);
+  background: var(--bg-elevated);
 }
 
 .pagination button:disabled {
@@ -840,6 +1082,7 @@ section {
   overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
 .data-table {
@@ -859,15 +1102,152 @@ section {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .data-table tr:hover td {
-  background: rgba(0, 212, 170, 0.05);
+  background: rgba(26, 86, 219, 0.05);
 }
 
 .data-table tr {
   cursor: pointer;
+}
+
+/* Player lookup search cards */
+.player-lookup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.player-lookup-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.player-lookup-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+.player-lookup-avatar {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  position: relative;
+}
+
+.player-lookup-photo {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+.player-lookup-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  border: 2px solid var(--border);
+}
+
+.player-lookup-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 3px;
+  color: var(--text);
+}
+
+.player-lookup-club {
+  font-size: 0.83rem;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.player-lookup-league {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 20px;
+  margin-bottom: 5px;
+  letter-spacing: 0.03em;
+}
+
+.player-lookup-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Season leaders table */
+.season-leaders-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.season-leaders-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.season-leaders-table th,
+.season-leaders-table td {
+  padding: 12px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.season-leaders-table th {
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.season-leaders-table tr:hover td {
+  background: rgba(26, 86, 219, 0.05);
+}
+
+.season-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.season-leaders-table tr:nth-child(1) .season-rank { background: #ffd700; color: #000; }
+.season-leaders-table tr:nth-child(2) .season-rank { background: #c0c0c0; color: #000; }
+.season-leaders-table tr:nth-child(3) .season-rank { background: #cd7f32; color: #fff; }
+
+.season-stat-value {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent);
 }
 
 /* Spinner & States */
@@ -920,7 +1300,7 @@ section {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.65);
   display: grid;
   place-items: center;
   z-index: 1000;
@@ -945,6 +1325,7 @@ section {
   position: relative;
   transform: translateY(20px);
   transition: transform 0.3s;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
 }
 
 .modal-overlay.visible .modal {
@@ -955,12 +1336,15 @@ section {
   position: absolute;
   top: 16px;
   right: 16px;
-  background: none;
-  border: none;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
   color: var(--text-muted);
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   cursor: pointer;
   line-height: 1;
+  padding: 4px 8px;
+  transition: color 0.2s;
 }
 
 .modal-close:hover {
@@ -1028,7 +1412,7 @@ section {
 /* Toggle */
 .toggle-group {
   display: inline-flex;
-  background: var(--bg-card);
+  background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
@@ -1048,7 +1432,7 @@ section {
 
 .toggle-btn.active {
   background: var(--accent);
-  color: var(--bg-dark);
+  color: #fff;
 }
 
 /* Games */
@@ -1063,6 +1447,7 @@ section {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
+  box-shadow: var(--shadow);
 }
 
 .game-card.locked {
@@ -1133,6 +1518,7 @@ section {
   border-radius: 16px;
   padding: 40px;
   width: min(440px, 92%);
+  box-shadow: var(--shadow);
 }
 
 .auth-tabs {
@@ -1159,7 +1545,7 @@ section {
 
 .auth-tab.active {
   background: var(--accent);
-  color: var(--bg-dark);
+  color: #fff;
 }
 
 .auth-form {
@@ -1189,6 +1575,7 @@ section {
 .form-group input:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.15);
 }
 
 .auth-message {
@@ -1199,7 +1586,7 @@ section {
 }
 
 .auth-message.success {
-  background: rgba(0, 212, 170, 0.15);
+  background: rgba(26, 86, 219, 0.12);
   color: var(--accent);
 }
 
@@ -1257,6 +1644,10 @@ section {
 }
 
 .alt-bg {
+  background: rgba(26, 86, 219, 0.04);
+}
+
+body.night-mode .alt-bg {
   background: rgba(255, 255, 255, 0.02);
 }
 

@@ -3,29 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — Arena Sports</title>
+  <title>Login — RizkZone</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+<script>if(localStorage.getItem('nightMode')==='true'){document.body.classList.add('night-mode');}</script>
+
   <nav class="navbar">
     <div class="container nav-inner">
       <a href="index.html" class="nav-brand">
-        <span class="brand-icon">⚽</span>
-        Arena Sports
+        <span class="brand-icon">⚽<span class="spin-ball">🏀</span></span>
+        RizkZone
       </a>
       <ul class="nav-links">
         <li><a href="index.html" class="nav-link">Home</a></li>
-        <li><a href="football.html" class="nav-link">Football</a></li>
-        <li><a href="basketball.html" class="nav-link">Basketball</a></li>
+        <li><a href="football.html" class="nav-link">⚽ Football</a></li>
+        <li><a href="basketball.html" class="nav-link">🏀 Basketball</a></li>
         <li><a href="players.html" class="nav-link">Players</a></li>
         <li><a href="games.html" class="nav-link">Mini Games</a></li>
       </ul>
+      <div class="nav-auth-wrap">
+        <button class="night-mode-btn" id="night-mode-toggle" title="Toggle night mode">🌙</button>
+      </div>
     </div>
   </nav>
 
   <main class="auth-page">
     <div class="auth-card">
-      <h1 style="text-align:center;margin-bottom:8px;">Welcome to Arena Sports</h1>
+      <h1 style="text-align:center;margin-bottom:8px;">Welcome to RizkZone</h1>
       <p style="text-align:center;color:var(--text-muted);margin-bottom:24px;">Sign in for full access or continue as a guest</p>
 
       <div class="auth-tabs">
@@ -75,6 +80,16 @@
       </div>
     </div>
   </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        © 2026 RizkZone. &nbsp;|&nbsp;
+        📧 <a href="mailto:charbel04rk@gmail.com">charbel04rk@gmail.com</a> &nbsp;|&nbsp;
+        💬 WhatsApp: <a href="https://wa.me/96170267806">70/267806</a>
+      </div>
+    </div>
+  </footer>
 
   <script type="module" src="js/login.js"></script>
 </body>

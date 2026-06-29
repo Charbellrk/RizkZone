@@ -3,15 +3,15 @@ import { fetchFeaturedMatch, fetchUpcomingMatches } from './api.js';
 import { HALL_OF_FAME } from './data/hall-of-fame.js';
 import { SEASON_HIGHLIGHTS } from './data/players-data.js';
 import { getRandomFact } from './data/facts.js';
-import { initCounters, initLiveTicker, initNav, showError } from './ui.js';
+import { initCounters, initLiveTicker, initNav, initNightMode, showError } from './ui.js';
 
 const FAQ_DATA = [
   {
-    q: 'Where does Arena Sports get its live data?',
+    q: 'Where does RizkZone get its live data?',
     a: 'We fetch live scores and match information from TheSportsDB, a comprehensive sports database API updated regularly with results from leagues worldwide.',
   },
   {
-    q: 'Do I need an account to use the website?',
+    q: 'Do I need an account to use RizkZone?',
     a: 'No — you can browse as a guest. However, registered users get access to all 15 matches per page and both mini games, while guests see 9 matches and one game.',
   },
   {
@@ -26,16 +26,50 @@ const FAQ_DATA = [
     q: 'How often is match data updated?',
     a: 'Live scores refresh every two minutes. Match lists and upcoming fixtures are fetched each time you visit or reload a page.',
   },
+  {
+    q: 'What sports does RizkZone cover?',
+    a: 'RizkZone currently covers football (soccer) and basketball (NBA). We track matches from top leagues worldwide including the Premier League, La Liga, Serie A, Bundesliga, and the NBA.',
+  },
+  {
+    q: 'How do I switch between football and basketball?',
+    a: 'Use the navigation bar at the top of the page. Click "⚽ Football" to browse football matches and statistics, or "🏀 Basketball" to explore NBA results and scoring legends.',
+  },
+  {
+    q: 'What is the Hall of Fame section?',
+    a: 'The Hall of Fame features legendary players from both football and basketball. Hover over any player card to flip it and reveal their all-time career statistics and achievements.',
+  },
+  {
+    q: 'Are the mini games free to play?',
+    a: 'Guest users can play one mini game of their choice — either the Penalty Shootout or the Free Throw Challenge. Registered users get full access to both games.',
+  },
+  {
+    q: 'Can I see individual player statistics?',
+    a: 'Yes! Visit the Players section to browse all-time top scorers in football and basketball. Search by player name or country, and click any row to see detailed career statistics.',
+  },
+  {
+    q: 'How do I use night mode?',
+    a: 'Click the 🌙 button in the top-right navigation bar to switch to night mode. Click ☀️ to return to day mode. Your preference is saved automatically.',
+  },
+  {
+    q: 'How do I contact RizkZone?',
+    a: 'You can reach us at charbel04rk@gmail.com or message us on WhatsApp at 70/267806. We welcome your questions, suggestions, and feedback!',
+  },
 ];
 
 function renderHallOfFame() {
   const grid = document.getElementById('hof-grid');
+  const sportIcon = (sport) => sport === 'Football' ? '⚽' : '🏀';
   grid.innerHTML = HALL_OF_FAME.map(
     (player) => `
     <div class="hof-card">
       <div class="hof-card-inner">
         <div class="hof-card-front">
-          <img src="${player.image}" alt="${player.name}" loading="lazy">
+          <img src="${player.image}" alt="${player.name}" loading="lazy"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="hof-img-fallback" style="display:none;width:100%;height:200px;background:var(--bg-elevated);align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:2.5rem;">
+            ${sportIcon(player.sport)}
+            <span style="font-size:0.85rem;font-weight:700;color:var(--text-muted);">${player.name}</span>
+          </div>
           <div class="hof-info">
             <h3>${player.name}</h3>
             <span>${player.sport}</span>
@@ -162,6 +196,7 @@ function initFacts() {
 
 updateNavAuth();
 initNav();
+initNightMode();
 initLiveTicker();
 initCounters();
 renderHallOfFame();

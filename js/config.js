@@ -14,7 +14,7 @@ export const FOOTBALL_LEAGUES = {
 export const NBA_LEAGUE_ID = '4387';
 
 export const MATCH_LIMIT_GUEST = 9;
-export const MATCH_LIMIT_USER = 15;
+export const MATCH_LIMIT_USER = 18;
 
 export const LEAGUE_IDS = Object.values(FOOTBALL_LEAGUES)
   .filter((l) => l.id)

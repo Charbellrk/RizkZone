@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Players — Arena Sports</title>
+  <title>Players — RizkZone</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+<script>if(localStorage.getItem('nightMode')==='true'){document.body.classList.add('night-mode');}</script>
+
   <div class="ticker-bar">
     <span class="ticker-label">LIVE</span>
     <div class="ticker-track">
@@ -19,17 +21,18 @@
   <nav class="navbar">
     <div class="container nav-inner">
       <a href="index.html" class="nav-brand">
-        <span class="brand-icon">⚽</span>
-        Arena Sports
+        <span class="brand-icon">⚽<span class="spin-ball">🏀</span></span>
+        RizkZone
       </a>
       <ul class="nav-links">
         <li><a href="index.html" class="nav-link">Home</a></li>
-        <li><a href="football.html" class="nav-link">Football</a></li>
-        <li><a href="basketball.html" class="nav-link">Basketball</a></li>
+        <li><a href="football.html" class="nav-link">⚽ Football</a></li>
+        <li><a href="basketball.html" class="nav-link">🏀 Basketball</a></li>
         <li><a href="players.html" class="nav-link">Players</a></li>
         <li><a href="games.html" class="nav-link">Mini Games</a></li>
       </ul>
       <div class="nav-auth-wrap">
+        <button class="night-mode-btn" id="night-mode-toggle" title="Toggle night mode">🌙</button>
         <span class="nav-user hidden" id="nav-user"></span>
         <a href="login.html" class="btn-auth" id="nav-auth">Login</a>
       </div>
@@ -39,36 +42,93 @@
   <header class="page-header">
     <div class="container">
       <h1>⭐ Players</h1>
-      <p>Explore the greatest scorers in football and basketball history</p>
+      <p>Live season top scorers + all-time career records</p>
     </div>
   </header>
 
   <main>
     <section>
       <div class="container">
+
+        <!-- Sport toggle -->
         <div class="toggle-group" role="tablist">
           <button class="toggle-btn active" data-sport="football" role="tab" aria-selected="true">⚽ Football</button>
           <button class="toggle-btn" data-sport="basketball" role="tab" aria-selected="false">🏀 Basketball</button>
         </div>
 
-        <div class="controls-bar">
-          <input type="search" class="search-input" id="player-search" placeholder="Search players by name or country..." aria-label="Search players">
+        <!-- Live player search -->
+        <div id="player-lookup" style="margin-top:28px;">
+          <div class="section-header" style="text-align:left;margin-bottom:12px;">
+            <h2>🔍 Search Any Player</h2>
+            <p id="player-lookup-sub" style="font-size:0.85rem;color:var(--text-muted);">
+              Search European football players — live data from TheSportsDB
+            </p>
+          </div>
+          <div class="controls-bar">
+            <input type="search" class="search-input" id="player-lookup-input"
+              placeholder="Type a player name (e.g. Salah, Bellingham, Mbappé)…"
+              aria-label="Search players" autocomplete="off" minlength="2">
+          </div>
+          <div id="player-lookup-results" style="margin-top:16px;"></div>
         </div>
 
-        <div class="data-table-wrap">
-          <table class="data-table" id="players-table">
-            <thead id="players-thead"></thead>
-            <tbody id="players-body"></tbody>
-          </table>
+        <!-- Live season leaders from ESPN API -->
+        <div id="season-leaders" style="margin-top:28px;">
+          <div class="section-header" style="text-align:left;margin-bottom:12px;">
+            <h2 id="season-leaders-title">⚡ This Season's Top Scorers</h2>
+            <p id="season-leaders-sub" style="font-size:0.85rem;color:var(--text-muted);">Live data via ESPN · Updates each matchday</p>
+          </div>
+
+          <!-- Competition picker — shown only for football -->
+          <div id="competition-picker" class="controls-bar" style="margin-bottom:16px;">
+            <select class="select-input" id="competition-select" aria-label="Select competition">
+              <option value="eng.1">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</option>
+              <option value="esp.1">🇪🇸 La Liga</option>
+              <option value="ger.1">🇩🇪 Bundesliga</option>
+              <option value="ita.1">🇮🇹 Serie A</option>
+              <option value="fra.1">🇫🇷 Ligue 1</option>
+              <option value="uefa.champions">⭐ Champions League</option>
+            </select>
+          </div>
+
+          <div id="season-leaders-grid">
+            <div class="spinner-wrap"><div class="spinner"></div><p>Loading season stats…</p></div>
+          </div>
         </div>
-        <p style="margin-top:16px;color:var(--text-muted);font-size:0.85rem;">Click any player row to view detailed statistics.</p>
+
+        <!-- All-time career records (verified historical data) -->
+        <div id="career-records" style="margin-top:48px;">
+          <div class="section-header" style="text-align:left;margin-bottom:8px;">
+            <h2 id="career-table-title">📋 All-Time Career Records</h2>
+            <p style="font-size:0.82rem;color:var(--text-muted);">
+              Verified historical career totals. Retired players: final records. Active players: career totals as of June 2026.
+            </p>
+          </div>
+
+          <div class="controls-bar" style="margin-top:12px;">
+            <input type="search" class="search-input" id="player-search" placeholder="Search players by name or country..." aria-label="Search players">
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table" id="players-table">
+              <thead id="players-thead"></thead>
+              <tbody id="players-body"></tbody>
+            </table>
+          </div>
+          <p style="margin-top:12px;color:var(--text-muted);font-size:0.82rem;">Click any row for full career details.</p>
+        </div>
+
       </div>
     </section>
   </main>
 
   <footer class="footer">
     <div class="container">
-      <div class="footer-bottom">© 2026 Arena Sports. Player data curated by our editorial team.</div>
+      <div class="footer-bottom">
+        © 2026 RizkZone. Season stats via ESPN · Career records verified by editorial team. &nbsp;|&nbsp;
+        📧 <a href="mailto:charbel04rk@gmail.com">charbel04rk@gmail.com</a> &nbsp;|&nbsp;
+        💬 WhatsApp: <a href="https://wa.me/96170267806">70/267806</a>
+      </div>
     </div>
   </footer>
 
