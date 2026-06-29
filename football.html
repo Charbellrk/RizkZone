@@ -88,11 +88,8 @@
     <section class="alt-bg">
       <div class="container">
         <div class="section-header" style="text-align:left;">
-          <h2>All-Time Top Scorers</h2>
-          <p>Filter the table to find your favorite legends</p>
-        </div>
-        <div class="controls-bar">
-          <input type="search" class="search-input" id="scorer-search" placeholder="Search by name or country..." aria-label="Search scorers">
+          <h2>All-Time Top 5 Scorers</h2>
+          <p>The five highest goal-scorers in football history · <a href="players.html" class="see-more-link">See all 30 in Players page →</a></p>
         </div>
         <div class="data-table-wrap">
           <table class="data-table" id="scorers-table">
@@ -108,16 +105,25 @@
             <tbody id="scorers-body"></tbody>
           </table>
         </div>
+        <div style="margin-top:14px;text-align:right;">
+          <a href="players.html" class="btn-see-more">View all 30 legends →</a>
+        </div>
       </div>
     </section>
 
     <!-- World Cup Winners by Year -->
     <section>
       <div class="container">
-        <div class="section-header" style="text-align:left;margin-bottom:20px;">
+        <div class="section-header" style="text-align:left;margin-bottom:16px;">
           <h2>🏆 FIFA World Cup Winners</h2>
           <p>Every edition from 1930 to 2022 · Latest final details via TheSportsDB API</p>
         </div>
+        <div class="controls-bar" style="margin-bottom:20px;">
+          <input type="search" class="search-input" id="wc-country-search"
+            placeholder="Search a country (e.g. Argentina, France, Brazil)…"
+            aria-label="Search World Cup winners" autocomplete="off">
+        </div>
+        <div id="wc-country-result" style="margin-bottom:20px;"></div>
         <div id="wc-winners-grid" class="wc-grid">
           <div class="spinner-wrap"><div class="spinner"></div><p>Loading…</p></div>
         </div>

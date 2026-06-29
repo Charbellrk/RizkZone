@@ -87,13 +87,9 @@ async function loadMatches(leagueKey = 'all') {
   }
 }
 
-function renderScorers(filter = '') {
+function renderScorers() {
   const tbody = document.getElementById('scorers-body');
-  const query = filter.toLowerCase();
-  const filtered = FOOTBALL_SCORERS.filter(
-    (p) => p.name.toLowerCase().includes(query) || p.country.toLowerCase().includes(query)
-  );
-  tbody.innerHTML = filtered.map((p) => `
+  tbody.innerHTML = FOOTBALL_SCORERS.slice(0, 5).map((p) => `
     <tr>
       <td>${p.rank}</td>
       <td>${p.name}</td>
@@ -113,9 +109,6 @@ document.getElementById('world-cup-btn').addEventListener('click', () => {
   loadMatches('worldcup');
 });
 
-document.getElementById('scorer-search').addEventListener('input', (e) => {
-  renderScorers(e.target.value);
-});
 
 /* Hide pagination — no longer needed with fixed 5-match display */
 if (pagination) pagination.style.display = 'none';
@@ -181,6 +174,75 @@ async function renderWorldCupWinners() {
       </div>`;
   }).join('');
 }
+
+/* ── World Cup Country Search ────────────────────────────────────────────── */
+
+const wcSearchInput  = document.getElementById('wc-country-search');
+const wcSearchResult = document.getElementById('wc-country-result');
+let wcSearchTimer = null;
+
+async function handleWCSearch(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) { wcSearchResult.innerHTML = ''; return; }
+
+  const wins = WC_WINNERS.filter((w) => w.country.toLowerCase().includes(q));
+
+  if (!wins.length) {
+    wcSearchResult.innerHTML = `
+      <div class="state-message state-empty">
+        <span class="state-icon">🏳</span>
+        <p>No World Cup wins found for "<strong>${query.trim()}</strong>". Try Brazil, Germany, France…</p>
+      </div>`;
+    return;
+  }
+
+  /* Show a loading state while we fetch the team badge from TheSportsDB */
+  wcSearchResult.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
+
+  /* Fetch national team badge via TheSportsDB API */
+  let badgeUrl = '';
+  try {
+    const { searchTeams } = await import('./api.js');
+    const teams = await searchTeams(wins[0].country);
+    const national = teams.find(
+      (t) => (t.strTeam || '').toLowerCase().includes('national') ||
+              (t.strLeague || '').toLowerCase().includes('international') ||
+              (t.strLeague || '').toLowerCase().includes('world cup')
+    ) || teams[0];
+    badgeUrl = national?.strTeamBadge || '';
+  } catch { /* badge optional */ }
+
+  const country  = wins[0].country;
+  const flag     = wins[0].flag;
+  const count    = wins.length;
+  const years    = wins.map((w) => w.year).join(', ');
+
+  wcSearchResult.innerHTML = `
+    <div class="wc-search-result">
+      ${badgeUrl
+        ? `<img src="${badgeUrl}" alt="${country}" class="wc-search-badge" loading="lazy" onerror="this.style.display='none'">`
+        : `<div class="wc-search-flag">${flag}</div>`}
+      <div class="wc-search-info">
+        <div class="wc-search-name">${flag} ${country}</div>
+        <div class="wc-search-count">🏆 ${count} World Cup title${count !== 1 ? 's' : ''}</div>
+        <div class="wc-search-years">Won in: <strong>${years}</strong></div>
+        <div class="wc-search-editions">
+          ${wins.map((w) => `
+            <div class="wc-search-edition">
+              <span class="wc-search-year">${w.year}</span>
+              <span>Final vs ${w.runnerUp} — ${w.score}</span>
+              <span class="wc-search-host">📍 ${w.host}</span>
+            </div>`).join('')}
+        </div>
+        <div class="wc-api-note">🔗 Badge via TheSportsDB · Results from FIFA historical records</div>
+      </div>
+    </div>`;
+}
+
+wcSearchInput?.addEventListener('input', (e) => {
+  clearTimeout(wcSearchTimer);
+  wcSearchTimer = setTimeout(() => handleWCSearch(e.target.value), 350);
+});
 
 /* ── European Team Search ────────────────────────────────────────────────── */
 

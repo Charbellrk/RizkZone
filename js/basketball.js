@@ -42,13 +42,9 @@ async function loadMatches() {
   }
 }
 
-function renderScorers(filter = '') {
+function renderScorers() {
   const tbody = document.getElementById('scorers-body');
-  const query = filter.toLowerCase();
-  const filtered = BASKETBALL_SCORERS.filter(
-    (p) => p.name.toLowerCase().includes(query) || p.country.toLowerCase().includes(query)
-  );
-  tbody.innerHTML = filtered.map((p) => `
+  tbody.innerHTML = BASKETBALL_SCORERS.slice(0, 5).map((p) => `
     <tr>
       <td>${p.rank}</td>
       <td>${p.name}</td>
@@ -58,10 +54,6 @@ function renderScorers(filter = '') {
     </tr>
   `).join('');
 }
-
-document.getElementById('scorer-search').addEventListener('input', (e) => {
-  renderScorers(e.target.value);
-});
 
 /* Hide pagination — fixed 5-match display needs no page controls */
 if (pagination) pagination.style.display = 'none';
