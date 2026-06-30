@@ -388,8 +388,6 @@ export function initNav() {
   const quicknavEl   = document.querySelector('.page-quicknav');
   const quicknavBtns = document.querySelector('.quicknav-btns');
   if (quicknavEl && quicknavBtns) {
-    quicknavEl.style.position = 'relative';
-
     const leftArrow  = document.createElement('button');
     leftArrow.className  = 'quicknav-arrow quicknav-arrow-left qn-hidden';
     leftArrow.setAttribute('aria-label', 'Scroll left');

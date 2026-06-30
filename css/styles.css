@@ -2151,9 +2151,9 @@ tr.standing-rel td:first-child { border-left: 3px solid #e53e3e; }
 .page-quicknav {
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border);
-  position: sticky;
   position: -webkit-sticky;
-  top: 60px; /* below the navbar */
+  position: sticky;
+  top: 60px;
   z-index: 90;
   padding: 0;
 }
@@ -2226,31 +2226,8 @@ body.night-mode .quicknav-btn.active {
 .quicknav-arrow-left  { left: 4px; }
 .quicknav-arrow-right { right: 4px; }
 
-/* Edge fade indicators */
-.page-quicknav::before,
-.page-quicknav::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 36px;
-  z-index: 2;
-  pointer-events: none;
-  display: none;
-}
-.page-quicknav::before {
-  left: 0;
-  background: linear-gradient(to right, var(--bg-elevated) 30%, transparent);
-}
-.page-quicknav::after {
-  right: 0;
-  background: linear-gradient(to left, var(--bg-elevated) 30%, transparent);
-}
-
 @media (max-width: 768px) {
   .quicknav-arrow { display: flex; }
-  .page-quicknav::before,
-  .page-quicknav::after { display: block; }
   .quicknav-btns { padding-left: 32px; padding-right: 32px; }
 }
 
