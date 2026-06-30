@@ -44,33 +44,44 @@ async function renderHighlights() {
   const yr  = now.getFullYear();
   const mo  = now.getMonth(); // 0-based
 
-  // Soccer season ends in May/June; Aug onwards = next season starts
-  const soccerSeason = mo >= 7 ? String(yr + 1) : String(yr);
-  const soccerLabel  = `Premier League ${parseInt(soccerSeason) - 1}/${soccerSeason.slice(2)}`;
-
-  // NBA season ends in June; Oct onwards = next season starts
+  // NBA season (Oct–Jun): Oct+ means next season has started
   const nbaSeason = mo >= 9 ? String(yr + 1) : String(yr);
   const nbaLabel  = `NBA ${parseInt(nbaSeason) - 1}-${nbaSeason.slice(2)}`;
 
   const liveBadge = '<span style="font-size:0.65rem;background:#16a34a;color:#fff;padding:1px 6px;border-radius:999px;margin-left:4px;vertical-align:middle;">🔴 Live</span>';
 
-  const [scorerRes, assistRes, nbaRes] = await Promise.allSettled([
-    fetchESPNSoccerScorers('eng.1', soccerSeason),
-    fetchESPNSoccerAssists('eng.1', soccerSeason),
-    fetchESPNNBAScorers(nbaSeason),
+  // Soccer: try current year then previous year until we get data
+  const soccerSeasonCandidates = mo >= 7
+    ? [String(yr + 1), String(yr), String(yr - 1)]
+    : [String(yr), String(yr - 1), String(yr - 2)];
+
+  async function fetchSoccerBest(fetchFn) {
+    for (const s of soccerSeasonCandidates) {
+      try {
+        const res = await fetchFn('eng.1', s);
+        if (res?.length) return { data: res, season: s };
+      } catch { /* try next */ }
+    }
+    return { data: [], season: soccerSeasonCandidates[0] };
+  }
+
+  const seasonLabel = (s) => `Premier League ${parseInt(s) - 1}/${s.slice(2)}`;
+
+  const [scorerData, assistData, nbaRes] = await Promise.all([
+    fetchSoccerBest(fetchESPNSoccerScorers),
+    fetchSoccerBest(fetchESPNSoccerAssists),
+    fetchESPNNBAScorers(nbaSeason).catch(() => []),
   ]);
 
-  const ok = (r) => r.status === 'fulfilled' && r.value?.length;
-
   const items = [
-    ok(scorerRes)
-      ? { label: `Top Scorer${liveBadge}`,  name: scorerRes.value[0].name,  stat: `${scorerRes.value[0].displayValue} goals`,   league: `${soccerLabel} · ${scorerRes.value[0].team}` }
-      : { label: 'Top Scorer',              ...SEASON_HIGHLIGHTS.topScorer },
-    ok(assistRes)
-      ? { label: `Top Assists${liveBadge}`, name: assistRes.value[0].name,  stat: `${assistRes.value[0].displayValue} assists`, league: `${soccerLabel} · ${assistRes.value[0].team}` }
-      : { label: 'Top Assists',             ...SEASON_HIGHLIGHTS.topAssists },
-    ok(nbaRes)
-      ? { label: `NBA PPG Leader${liveBadge}`, name: nbaRes.value[0].name, stat: `${nbaRes.value[0].displayValue} PPG`,        league: `${nbaLabel} · ${nbaRes.value[0].team}` }
+    scorerData.data.length
+      ? { label: `Top Scorer${liveBadge}`,     name: scorerData.data[0].name, stat: `${scorerData.data[0].displayValue} goals`,   league: `${seasonLabel(scorerData.season)} · ${scorerData.data[0].team}` }
+      : { label: 'Top Scorer',                 ...SEASON_HIGHLIGHTS.topScorer },
+    assistData.data.length
+      ? { label: `Top Assists${liveBadge}`,    name: assistData.data[0].name, stat: `${assistData.data[0].displayValue} assists`, league: `${seasonLabel(assistData.season)} · ${assistData.data[0].team}` }
+      : { label: 'Top Assists',                ...SEASON_HIGHLIGHTS.topAssists },
+    nbaRes.length
+      ? { label: `NBA PPG Leader${liveBadge}`, name: nbaRes[0].name,          stat: `${nbaRes[0].displayValue} PPG`,              league: `${nbaLabel} · ${nbaRes[0].team}` }
       : { label: 'Player of the Week',         ...SEASON_HIGHLIGHTS.playerOfWeek },
   ];
 

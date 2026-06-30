@@ -1,3 +1,6 @@
+import { isSaved, saveMatch, unsaveMatch } from './saves.js';
+import { isLoggedIn } from './auth.js';
+
 export function showSpinner(container) {
   if (!container) return;
   container.innerHTML = `
@@ -76,6 +79,32 @@ export function createMatchCard(match, onClick) {
   });
   card.style.position = 'relative';
   card.appendChild(shareBtn);
+
+  /* Save button */
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'match-save-btn';
+  const refreshSaveBtn = () => {
+    const saved = isSaved(match);
+    saveBtn.textContent = saved ? '🔖' : '💾';
+    saveBtn.title = saved ? 'Remove from saved' : 'Save match';
+    saveBtn.classList.toggle('saved', saved);
+  };
+  refreshSaveBtn();
+  saveBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!isLoggedIn()) {
+      saveBtn.textContent = '🔒';
+      setTimeout(refreshSaveBtn, 1400);
+      return;
+    }
+    if (isSaved(match)) {
+      unsaveMatch(match.id || `${match.home}|${match.away}|${match.date}`);
+    } else {
+      saveMatch(match);
+    }
+    refreshSaveBtn();
+  });
+  card.appendChild(saveBtn);
 
   return card;
 }
@@ -269,6 +298,14 @@ export function initLiveTicker() {
 }
 
 export function initNav() {
+  // Inject Storage link into desktop nav (once, before active-link scan)
+  const navLinksList = document.querySelector('.nav-links');
+  if (navLinksList && !navLinksList.querySelector('[href="storage.html"]')) {
+    const li = document.createElement('li');
+    li.innerHTML = '<a href="storage.html" class="nav-link">💾 Storage</a>';
+    navLinksList.appendChild(li);
+  }
+
   const path = window.location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav-link').forEach((link) => {
     const href = link.getAttribute('href');
