@@ -1,6 +1,7 @@
 import { API_BASE, FOOTBALL_LEAGUES, NBA_LEAGUE_ID } from './config.js';
 
 const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports';
+const ESPN_CORE = 'https://sports.core.api.espn.com/v2/sports';
 
 async function fetchJson(url) {
   const response = await fetch(url);
@@ -287,60 +288,67 @@ export async function enrichPlayersWithLeague(rawPlayers) {
   });
 }
 
-/* ── ESPN API helpers ─────────────────────────────────────────────────────── */
+/* ── ESPN Core API helpers ────────────────────────────────────────────────── */
 
-function parseESPNLeaders(data, statKeywords) {
-  /* ESPN returns either data.leaders (array) or data.leaders.categories (array) */
-  const cats = Array.isArray(data.leaders)
-    ? data.leaders
-    : (data.leaders?.categories || data.categories || []);
+function extractId(ref = '') {
+  const m = ref.match(/\/(\d+)(?:\?|$)/);
+  return m ? m[1] : null;
+}
 
+async function batchFetchCoreNames(refs, urlBuilder) {
+  const ids = refs.map((r) => extractId(r));
+  const results = await Promise.allSettled(ids.map((id) => id ? fetchJson(urlBuilder(id)) : Promise.resolve(null)));
+  return results.map((r) => (r.status === 'fulfilled' ? r.value : null));
+}
+
+async function fetchCoreLeaders(sport, league, season, seasonType, catKeywords) {
+  const data = await fetchJson(
+    `${ESPN_CORE}/${sport}/leagues/${league}/seasons/${season}/types/${seasonType}/leaders`
+  );
+  const cats = data.categories || [];
   const cat = cats.find((c) =>
-    statKeywords.some((kw) => (c.name || '').toLowerCase().includes(kw) || (c.displayName || '').toLowerCase().includes(kw))
+    catKeywords.some((kw) => (c.name || '').toLowerCase().includes(kw) || (c.displayName || '').toLowerCase().includes(kw))
   ) || cats[0];
-
   if (!cat?.leaders?.length) return [];
 
-  return cat.leaders.slice(0, 30).map((entry, i) => ({
-    rank: entry.rank || i + 1,
-    name: entry.athlete?.displayName || entry.athlete?.shortName || 'Unknown',
-    team: entry.team?.displayName || entry.team?.location || 'N/A',
-    value: entry.value ?? 0,
-    displayValue: entry.displayValue || String(Math.round(entry.value ?? 0)),
-    statLabel: cat.shortDisplayName || cat.displayName || '',
+  const entries = cat.leaders.slice(0, 15);
+  const athleteRefs = entries.map((e) => e.athlete?.$ref || '');
+  const teamRefs    = entries.map((e) => e.team?.$ref    || '');
+
+  const [athletes, teams] = await Promise.all([
+    batchFetchCoreNames(athleteRefs, (id) => `${ESPN_CORE}/${sport}/leagues/${league}/seasons/${season}/athletes/${id}`),
+    batchFetchCoreNames(teamRefs,    (id) => `${ESPN_CORE}/${sport}/leagues/${league}/seasons/${season}/teams/${id}`),
+  ]);
+
+  return entries.map((e, i) => ({
+    rank: i + 1,
+    name: athletes[i]?.displayName || athletes[i]?.fullName || 'Unknown',
+    team: teams[i]?.shortDisplayName || teams[i]?.displayName || 'N/A',
+    value: e.value ?? 0,
+    displayValue: String(Math.round(e.value ?? 0)),
   }));
 }
 
-/* Football (soccer) top scorers — tries current leaders, then explicit 2024-25 season */
+/* Football (soccer) top scorers via ESPN Core API */
 export async function fetchESPNSoccerScorers(competition = 'eng.1') {
-  const urls = [
-    `${ESPN_BASE}/soccer/${competition}/leaders`,
-    `${ESPN_BASE}/soccer/${competition}/leaders?season=2025`,
-    `${ESPN_BASE}/soccer/${competition}/leaders?season=2024`,
-  ];
-  for (const url of urls) {
+  const seasons = ['2025', '2024'];
+  for (const season of seasons) {
     try {
-      const data = await fetchJson(url);
-      const leaders = parseESPNLeaders(data, ['goal', 'score']);
-      if (leaders.length > 0) return leaders;
-    } catch { /* try next */ }
+      const leaders = await fetchCoreLeaders('soccer', competition, season, '1', ['goal']);
+      if (leaders.length) return leaders;
+    } catch { /* try next season */ }
   }
   return [];
 }
 
-/* NBA scoring leaders — tries current season, then explicit 2024-25 */
+/* NBA scoring leaders via ESPN Core API */
 export async function fetchESPNNBAScorers() {
-  const urls = [
-    `${ESPN_BASE}/basketball/nba/leaders`,
-    `${ESPN_BASE}/basketball/nba/leaders?season=2025`,
-    `${ESPN_BASE}/basketball/nba/leaders?season=2024`,
-  ];
-  for (const url of urls) {
+  const seasons = ['2025', '2024'];
+  for (const season of seasons) {
     try {
-      const data = await fetchJson(url);
-      const leaders = parseESPNLeaders(data, ['point', 'scor', 'avg']);
-      if (leaders.length > 0) return leaders;
-    } catch { /* try next */ }
+      const leaders = await fetchCoreLeaders('basketball', 'nba', season, '2', ['pointspergame', 'point', 'scor']);
+      if (leaders.length) return leaders;
+    } catch { /* try next season */ }
   }
   return [];
 }
