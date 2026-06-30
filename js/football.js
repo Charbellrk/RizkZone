@@ -1,5 +1,5 @@
 import { updateNavAuth } from './auth.js';
-import { fetchFootballMatches, searchTeams, fetchLeagueTable, fetchWorldCupFinal, fetchTeamPlayers } from './api.js';
+import { fetchFootballMatches, searchTeams, fetchLeagueTable, fetchWorldCupFinal, fetchTeamPlayers, fetchTeamTrophies } from './api.js';
 import { FOOTBALL_SCORERS } from './data/players-data.js';
 import {
   showSpinner,
@@ -259,8 +259,8 @@ function getInitials(name = '') {
 function renderPlayerRoster(players, teamName) {
   return `
     <div class="squad-header">
-      <h3>Squad — ${teamName}</h3>
-      <span class="squad-count">${players.length} player${players.length !== 1 ? 's' : ''}</span>
+      <h3>Top 5 Players — ${teamName}</h3>
+      <span class="squad-count">${players.length} shown</span>
     </div>
     <div class="player-roster-grid">
       ${players.map((p) => {
@@ -283,20 +283,63 @@ function renderPlayerRoster(players, teamName) {
     </div>`;
 }
 
-async function loadTeamSquad(teamId, teamName) {
+function renderTrophies(trophies, teamName) {
+  const grouped = {};
+  trophies.forEach((t) => {
+    const key = t.strTrophy || 'Trophy';
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(t.strSeason || t.strYear || '');
+  });
+  const entries = Object.entries(grouped);
+  return `
+    <div class="squad-header" style="margin-top:24px;">
+      <h3>🏆 Accomplishments — ${teamName}</h3>
+      <span class="squad-count">${trophies.length} trophy win${trophies.length !== 1 ? 's' : ''}</span>
+    </div>
+    <div class="trophies-grid">
+      ${entries.map(([trophy, seasons]) => `
+        <div class="trophy-card">
+          <div class="trophy-name">${trophy}</div>
+          <div class="trophy-count">×${seasons.length}</div>
+          <div class="trophy-seasons">${seasons.filter(Boolean).join(', ') || '—'}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+async function loadTeamSquad(teamId, teamName, leagueName) {
   if (!teamPlayerRoster) return;
-  teamPlayerRoster.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>Loading squad…</p></div>';
+  teamPlayerRoster.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>Loading squad & honours…</p></div>';
   teamPlayerRoster.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  const players = await fetchTeamPlayers(teamId, teamName);
-  if (!players.length) {
-    teamPlayerRoster.innerHTML = `
+
+  const [players, trophies] = await Promise.all([
+    fetchTeamPlayers(teamId, teamName, leagueName),
+    fetchTeamTrophies(teamId),
+  ]);
+
+  let html = '';
+
+  if (players.length) {
+    const display = players.slice(0, 5);
+    html += renderPlayerRoster(display, teamName);
+  } else {
+    html += `
       <div class="state-message state-empty">
         <span class="state-icon">📭</span>
         <p>No player data available for ${teamName}.</p>
       </div>`;
-    return;
   }
-  teamPlayerRoster.innerHTML = renderPlayerRoster(players, teamName);
+
+  if (trophies.length) {
+    html += renderTrophies(trophies, teamName);
+  } else {
+    html += `
+      <div class="squad-header" style="margin-top:24px;">
+        <h3>🏆 Accomplishments — ${teamName}</h3>
+        <span class="squad-count">No trophy data in database</span>
+      </div>`;
+  }
+
+  teamPlayerRoster.innerHTML = html;
 }
 
 function renderTeamCards(teams) {
@@ -320,7 +363,7 @@ function renderTeamCards(teams) {
           <div class="team-card-meta">🌍 ${t.strCountry || '—'}</div>
           ${t.intFormedYear ? `<div class="team-card-meta">🗓 Founded ${t.intFormedYear}</div>` : ''}
           ${t.strStadium ? `<div class="team-card-meta">🏟 ${t.strStadium}</div>` : ''}
-          <button class="view-squad-btn" data-team-id="${t.idTeam}" data-team-name="${t.strTeam}">🏃 View Squad</button>
+          <button class="view-squad-btn" data-team-id="${t.idTeam}" data-team-name="${t.strTeam}" data-league="${t.strLeague || ''}">🏃 View Squad</button>
         </div>
       </div>`).join('')
   }</div>`;
@@ -329,7 +372,7 @@ function renderTeamCards(teams) {
 teamSearchResults?.addEventListener('click', (e) => {
   const btn = e.target.closest('.view-squad-btn');
   if (!btn) return;
-  loadTeamSquad(btn.dataset.teamId, btn.dataset.teamName);
+  loadTeamSquad(btn.dataset.teamId, btn.dataset.teamName, btn.dataset.league);
 });
 
 teamSearchInput?.addEventListener('input', (e) => {

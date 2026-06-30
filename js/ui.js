@@ -217,37 +217,47 @@ export function initLiveTicker() {
     return base + sep + base; // -50% animation point
   }
 
+  const WC_LEAGUE_ID = '4429';
+  const isWC = (e) =>
+    e.leagueId === WC_LEAGUE_ID ||
+    (e.league || '').toLowerCase().includes('world cup') ||
+    (e.league || '').toLowerCase().includes('copa mundial');
+
+  function animateTicker(items) {
+    ticker.innerHTML = buildItems(items);
+    ticker.style.animation = 'none';
+    ticker.offsetHeight; // force reflow
+    ticker.style.animation = `ticker-scroll ${Math.max(15, items.length * 6)}s linear infinite`;
+  }
+
   async function loadTicker() {
     try {
       const { fetchLiveScores, fetchLeaguePastEvents } = await import('./api.js');
-      const [soccer, basketball] = await Promise.all([
-        fetchLiveScores('Soccer'),
-        fetchLiveScores('Basketball'),
-      ]);
-      const live = [...soccer, ...basketball];
 
-      if (live.length) {
+      /* 1 — check for live World Cup matches today */
+      const todaySoccer = await fetchLiveScores('Soccer');
+      const wcLive = todaySoccer.filter((e) => e.isLive && isWC(e));
+      if (wcLive.length) {
         setLabel('LIVE', true);
-        ticker.innerHTML = buildItems(live.slice(0, 20));
-        ticker.style.animation = 'none';
-        ticker.offsetHeight; // force reflow
-        const duration = Math.max(15, live.slice(0, 20).length * 6);
-        ticker.style.animation = `ticker-scroll ${duration}s linear infinite`;
+        animateTicker(wcLive);
         return;
       }
 
-      /* No live matches — show the single most recent past match */
-      setLabel('LATEST', false);
-      const [plEvent] = await Promise.all([fetchLeaguePastEvents('4328', 1)]);
-      const recent = plEvent.length ? plEvent : await fetchLeaguePastEvents('4387', 1);
-      if (recent.length) {
-        ticker.innerHTML = buildItems(recent.slice(0, 1));
-        ticker.style.animation = 'none';
-        ticker.offsetHeight; // force reflow
-        const duration = Math.max(15, recent.slice(0, 1).length * 6);
-        ticker.style.animation = `ticker-scroll ${duration}s linear infinite`;
+      /* 2 — non-live today's World Cup fixtures (scheduled/completed today) */
+      const wcToday = todaySoccer.filter((e) => isWC(e));
+      if (wcToday.length) {
+        setLabel('WC 2026', false);
+        animateTicker(wcToday);
+        return;
+      }
+
+      /* 3 — recent past World Cup 2026 results */
+      setLabel('WC 2026', false);
+      const wcPast = await fetchLeaguePastEvents(WC_LEAGUE_ID, 8);
+      if (wcPast.length) {
+        animateTicker(wcPast);
       } else {
-        ticker.innerHTML = '<span class="ticker-item">No live matches right now — check back soon!</span>';
+        ticker.innerHTML = '<span class="ticker-item">FIFA World Cup 2026 — scores loading…</span>';
       }
     } catch {
       ticker.innerHTML = '<span class="ticker-item">Scores temporarily unavailable</span>';

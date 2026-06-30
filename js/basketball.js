@@ -1,5 +1,12 @@
 import { updateNavAuth } from './auth.js';
-import { fetchBasketballMatches, fetchNBAStandings, fetchTeamPlayers, searchBasketballTeams } from './api.js';
+import {
+  fetchNBAGamesByDate,
+  fetchRecentNBADate,
+  fetchNBASeasonMatches,
+  fetchNBAStandings,
+  fetchTeamPlayers,
+  searchNBATeams,
+} from './api.js';
 import { BASKETBALL_SCORERS } from './data/players-data.js';
 import {
   showSpinner,
@@ -14,30 +21,73 @@ import {
 
 const matchesContainer = document.getElementById('matches-container');
 const matchCountLabel  = document.getElementById('match-count-label');
-const pagination       = document.getElementById('pagination');
+const datePicker       = document.getElementById('nba-date-picker');
+const prevDayBtn       = document.getElementById('nba-prev-day');
+const nextDayBtn       = document.getElementById('nba-next-day');
 
-function renderMatches(matches) {
+let currentDate = ''; // YYYY-MM-DD
+
+function renderMatches(matches, dateStr) {
   matchesContainer.innerHTML = '';
+  if (!matches.length) {
+    showEmpty(matchesContainer, `No basketball games on ${dateStr}. Try navigating to another day.`);
+    matchCountLabel.textContent = `No games on ${dateStr}`;
+    return;
+  }
   const grid = document.createElement('div');
   grid.className = 'matches-grid';
   matches.forEach((match) => grid.appendChild(createMatchCard(match, showMatchModal)));
   matchesContainer.appendChild(grid);
+  matchCountLabel.textContent = `${matches.length} game${matches.length !== 1 ? 's' : ''} on ${dateStr}`;
 }
 
-async function loadMatches() {
+async function loadMatchesForDate(dateStr) {
+  currentDate = dateStr;
+  if (datePicker) datePicker.value = dateStr;
   showSpinner(matchesContainer);
-  matchCountLabel.textContent = 'Loading NBA matches…';
+  matchCountLabel.textContent = `Loading games for ${dateStr}…`;
+  const matches = await fetchNBAGamesByDate(dateStr);
+  renderMatches(matches, dateStr);
+}
+
+function shiftDate(dateStr, days) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+prevDayBtn?.addEventListener('click', () => {
+  if (currentDate) loadMatchesForDate(shiftDate(currentDate, -1));
+});
+nextDayBtn?.addEventListener('click', () => {
+  if (currentDate) loadMatchesForDate(shiftDate(currentDate, 1));
+});
+datePicker?.addEventListener('change', (e) => {
+  if (e.target.value) loadMatchesForDate(e.target.value);
+});
+
+/* ── NBA 2025-26 Season Results ───────────────────────────────────────────── */
+
+const nbaSeasonContainer = document.getElementById('nba-season-container');
+const nbaSeasonLabel     = document.getElementById('nba-season-label');
+
+async function loadNBASeasonMatches() {
+  if (!nbaSeasonContainer) return;
   try {
-    const matches = await fetchBasketballMatches();
+    const matches = await fetchNBASeasonMatches(10);
     if (!matches.length) {
-      showEmpty(matchesContainer, 'No recent NBA matches found. Check back shortly.');
-      matchCountLabel.textContent = 'No matches found';
+      nbaSeasonContainer.innerHTML = '<div class="state-message state-empty"><span class="state-icon">📭</span><p>No 2025-26 NBA games found yet.</p></div>';
+      if (nbaSeasonLabel) nbaSeasonLabel.textContent = 'No results yet for this season.';
       return;
     }
-    matchCountLabel.textContent = `Last ${matches.length} NBA matches`;
-    renderMatches(matches);
+    if (nbaSeasonLabel) nbaSeasonLabel.textContent = `Last ${matches.length} completed games · 2025-26 season`;
+    const grid = document.createElement('div');
+    grid.className = 'matches-grid';
+    matches.forEach((m) => grid.appendChild(createMatchCard(m, showMatchModal)));
+    nbaSeasonContainer.innerHTML = '';
+    nbaSeasonContainer.appendChild(grid);
   } catch {
-    showError(matchesContainer, 'Failed to load NBA matches. Please check your connection and try again.');
+    nbaSeasonContainer.innerHTML = '<div class="state-message state-error"><span class="state-icon">⚠</span><p>Could not load 2025-26 season results.</p></div>';
   }
 }
 
@@ -175,7 +225,7 @@ async function loadBballTeamSquad(teamId, teamName) {
       </div>`;
     return;
   }
-  bballTeamRoster.innerHTML = renderPlayerRoster(players, teamName);
+  bballTeamRoster.innerHTML = renderPlayerRoster(players.slice(0, 15), teamName);
 }
 
 function renderBballTeamCards(teams) {
@@ -195,8 +245,8 @@ function renderBballTeamCards(teams) {
           : '<div class="team-card-badge team-card-badge--empty">🏀</div>'}
         <div class="team-card-info">
           <div class="team-card-name">${t.strTeam}</div>
-          <span class="team-card-league">${t.strLeague || '—'}</span>
-          <div class="team-card-meta">🌍 ${t.strCountry || '—'}</div>
+          <span class="team-card-league">${t.strLeague || 'NBA'}</span>
+          <div class="team-card-meta">🌍 ${t.strCountry || 'USA'}</div>
           ${t.intFormedYear ? `<div class="team-card-meta">🗓 Founded ${t.intFormedYear}</div>` : ''}
           ${t.strStadium ? `<div class="team-card-meta">🏟 ${t.strStadium}</div>` : ''}
           <button class="view-squad-btn" data-team-id="${t.idTeam}" data-team-name="${t.strTeam}">🏃 View Squad</button>
@@ -223,7 +273,7 @@ bballTeamInput?.addEventListener('input', (e) => {
   bballSearchTimer = setTimeout(async () => {
     bballTeamResults.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>Searching…</p></div>';
     try {
-      const teams = await searchBasketballTeams(q);
+      const teams = await searchNBATeams(q);
       renderBballTeamCards(teams);
     } catch {
       bballTeamResults.innerHTML = '<div class="state-message state-error"><span class="state-icon">⚠</span><p>Search failed. Try again.</p></div>';
@@ -252,7 +302,6 @@ sections.forEach((s) => observer.observe(s));
 
 /* ── Init ────────────────────────────────────────────────────────────────── */
 
-if (pagination) pagination.style.display = 'none';
 const guestBanner = document.getElementById('guest-banner');
 if (guestBanner) guestBanner.remove();
 
@@ -261,5 +310,8 @@ initNav();
 initNightMode();
 initLiveTicker();
 renderScorers();
-loadMatches();
 loadNBAStandings(nbaStandingsSeason?.value || '2025');
+
+/* Start from the most recent NBA game date */
+fetchRecentNBADate().then((date) => loadMatchesForDate(date));
+loadNBASeasonMatches();

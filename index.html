@@ -55,18 +55,6 @@
     </div>
   </header>
 
-  <section id="featured">
-    <div class="container">
-      <div class="section-header">
-        <h2>Match of the Day</h2>
-        <p>Today's featured fixture from the world of football</p>
-      </div>
-      <div id="featured-match">
-        <div class="spinner-wrap"><div class="spinner"></div><p>Loading featured match...</p></div>
-      </div>
-    </div>
-  </section>
-
   <section class="alt-bg">
     <div class="container">
       <div class="section-header">
@@ -90,6 +78,32 @@
           <span class="counter-value" data-counter="50" data-suffix="+">0</span>
           <span class="counter-label">Leagues Covered</span>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Home page quick-nav -->
+  <div class="page-quicknav" id="page-quicknav">
+    <div class="container">
+      <div class="quicknav-btns">
+        <a href="#featured"        class="quicknav-btn">🏆 Match of the Day</a>
+        <a href="#hall-of-fame"    class="quicknav-btn">🌟 Hall of Fame</a>
+        <a href="#upcoming"        class="quicknav-btn">📅 Upcoming</a>
+        <a href="#news-section"    class="quicknav-btn">📰 News</a>
+        <a href="#faq"             class="quicknav-btn">❓ FAQ</a>
+        <a href="#chatbot-section" class="quicknav-btn">🤖 Ask AI</a>
+      </div>
+    </div>
+  </div>
+
+  <section id="featured">
+    <div class="container">
+      <div class="section-header">
+        <h2>Match of the Day</h2>
+        <p>Today's featured fixture from the world of football</p>
+      </div>
+      <div id="featured-match">
+        <div class="spinner-wrap"><div class="spinner"></div><p>Loading featured match...</p></div>
       </div>
     </div>
   </section>
@@ -160,6 +174,27 @@
         <p>Everything you need to know about RizkZone — answered clearly and quickly</p>
       </div>
       <div class="faq-list" id="faq-list"></div>
+    </div>
+  </section>
+
+  <!-- AI Sports Chatbot -->
+  <section class="alt-bg" id="chatbot-section">
+    <div class="container">
+      <div class="section-header">
+        <h2>🤖 Ask the Sports AI</h2>
+        <p>Ask me anything you want — especially about sports! Powered by Google Gemini</p>
+      </div>
+      <div class="chatbot-wrap">
+        <div class="chatbot-messages" id="chatbot-messages">
+          <div class="chat-msg chat-msg--bot">
+            👋 Hi! I'm your RizkZone Sports AI. Ask me anything about football, basketball, NBA, FIFA, players, match results — or anything else!
+          </div>
+        </div>
+        <div class="chatbot-input-row">
+          <input type="text" id="chatbot-input" placeholder="Ask me anything — especially sports…" autocomplete="off">
+          <button id="chatbot-send">Send ➤</button>
+        </div>
+      </div>
     </div>
   </section>
 

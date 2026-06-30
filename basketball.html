@@ -65,20 +65,30 @@
 
     <section id="section-matches">
       <div class="container">
-        <div class="section-header" style="text-align:left;margin-bottom:20px;">
-          <h2>Latest NBA Matches</h2>
-          <p id="match-count-label">Loading matches...</p>
+
+        <!-- NBA Men 2025-26 Season Results -->
+        <div class="section-header" style="text-align:left;margin-bottom:12px;">
+          <h2>🏆 NBA 2025-26 Season Results</h2>
+          <p id="nba-season-label">Loading NBA games…</p>
+        </div>
+        <div id="nba-season-container">
+          <div class="spinner-wrap"><div class="spinner"></div><p>Fetching 2025-26 NBA season…</p></div>
         </div>
 
-        <div id="matches-container">
-          <div class="spinner-wrap"><div class="spinner"></div><p>Fetching NBA data...</p></div>
+        <!-- Basketball by Date (WNBA + all basketball) -->
+        <div style="margin-top:36px;padding-top:24px;border-top:1px solid var(--border);">
+          <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px;">🗓 Browse NBA &amp; WNBA by Date</h3>
+          <p id="match-count-label" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">Loading matches…</p>
+          <div id="matches-container">
+            <div class="spinner-wrap"><div class="spinner"></div><p>Fetching basketball data…</p></div>
+          </div>
+          <div class="date-nav" id="nba-date-nav">
+            <button class="date-nav-btn" id="nba-prev-day">← Prev Day</button>
+            <input type="date" class="date-nav-input" id="nba-date-picker" aria-label="Select date">
+            <button class="date-nav-btn" id="nba-next-day">Next Day →</button>
+          </div>
         </div>
 
-        <div class="pagination" id="pagination">
-          <button id="prev-page" disabled>← Previous</button>
-          <span class="page-info" id="page-info">Page 1</span>
-          <button id="next-page">Next →</button>
-        </div>
       </div>
     </section>
 
@@ -107,7 +117,7 @@
       <div class="container">
         <div class="section-header" style="text-align:left;margin-bottom:12px;">
           <h2>🔍 NBA Team Finder</h2>
-          <p>Search any NBA team — see their full roster and player details · Live from TheSportsDB</p>
+          <p>Search any NBA team — see their full roster and player details · Live from ESPN</p>
         </div>
         <div class="controls-bar">
           <input type="search" class="search-input" id="bball-team-search-input"

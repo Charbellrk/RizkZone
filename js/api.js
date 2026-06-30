@@ -32,6 +32,7 @@ function normalizeEvent(event) {
     date: event.dateEvent || event.strTimestamp?.split('T')[0] || '',
     time: event.strTime?.slice(0, 5) || '',
     league: event.strLeague || 'Unknown League',
+    leagueId: event.idLeague || '',
     venue: event.strVenue || 'TBD',
     status,
     isLive,
@@ -41,33 +42,80 @@ function normalizeEvent(event) {
   };
 }
 
-/* Returns up to `limit` past events for one league — endpoint naturally gives ~15 */
-export async function fetchLeaguePastEvents(leagueId, limit = 15) {
-  const data = await fetchJson(`${API_BASE}/eventspastleague.php?id=${leagueId}`);
-  return (data.events || []).slice(0, limit).map(normalizeEvent);
+/* Parse ESPN scoreboard events into our normalized format */
+const ESPN_LEAGUE_MAP = {
+  '4328': 'eng.1', '4335': 'esp.1', '4332': 'ita.1',
+  '4331': 'ger.1', '4334': 'fra.1', '4480': 'uefa.champions',
+};
+
+function parseESPNScoreboard(espnEvents, leagueName) {
+  return (espnEvents || []).flatMap((e) => {
+    const comp = e.competitions?.[0];
+    if (!comp) return [];
+    const home = comp.competitors?.find((c) => c.homeAway === 'home') || {};
+    const away = comp.competitors?.find((c) => c.homeAway === 'away') || {};
+    const state = comp.status?.type?.state || '';
+    const completed = state === 'post' || comp.status?.type?.completed;
+    if (!completed) return [];
+    return [{
+      id: e.id,
+      home: home.team?.displayName || 'TBD',
+      away: away.team?.displayName || 'TBD',
+      homeScore: home.score ?? '-',
+      awayScore: away.score ?? '-',
+      date: (e.date || '').split('T')[0],
+      time: (e.date || '').split('T')[1]?.slice(0, 5) || '',
+      league: leagueName || e.name || 'Unknown',
+      leagueId: '',
+      venue: comp.venue?.fullName || 'TBD',
+      status: 'FT',
+      isLive: false,
+      progress: '',
+      thumb: '',
+      sport: '',
+    }];
+  });
 }
 
-/* Returns the last `limit` completed events from the current (or prior) season */
-async function fetchSeasonPastEvents(leagueId, limit = 5) {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const startYear = month >= 8 ? year : year - 1;
-  const seasons = [`${startYear}-${startYear + 1}`, `${startYear - 1}-${startYear}`];
+/* Returns up to `limit` past events for one league.
+   Primary: TheSportsDB eventspastleague. Fallback: ESPN scoreboard. */
+export async function fetchLeaguePastEvents(leagueId, limit = 15) {
+  try {
+    const data = await fetchJson(`${API_BASE}/eventspastleague.php?id=${leagueId}`);
+    const events = (data.events || []).slice(0, limit).map(normalizeEvent);
+    if (events.length) return events;
+  } catch { /* fall through to ESPN */ }
 
-  for (const season of seasons) {
-    try {
-      const data = await fetchJson(`${API_BASE}/eventsseason.php?id=${leagueId}&s=${season}`);
-      const events = (data.events || [])
-        .filter((e) => e.intHomeScore !== null && e.intHomeScore !== undefined && String(e.intHomeScore) !== '')
-        .sort((a, b) => new Date(b.dateEvent) - new Date(a.dateEvent))
-        .slice(0, limit)
-        .map(normalizeEvent);
-      if (events.length > 0) return events;
-    } catch { /* try next season */ }
+  /* ESPN fallback — football leagues and NBA */
+  try {
+    let espnUrl;
+    let leagueName;
+    const slug = ESPN_LEAGUE_MAP[leagueId];
+    if (slug) {
+      espnUrl = `${ESPN_BASE}/soccer/${slug}/scoreboard?limit=20`;
+      leagueName = Object.values(FOOTBALL_LEAGUES).find((l) => l.id === leagueId)?.name || '';
+    } else if (leagueId === '4387') {
+      espnUrl = `${ESPN_BASE}/basketball/nba/scoreboard?limit=20`;
+      leagueName = 'NBA';
+    }
+    if (espnUrl) {
+      const data = await fetchJson(espnUrl);
+      const events = parseESPNScoreboard(data.events, leagueName);
+      if (events.length) return events.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, limit);
+    }
+  } catch { /* both sources failed */ }
+
+  return [];
+}
+
+/* Returns the last `limit` completed events for a league — eventspastleague is
+   the most reliable free-tier endpoint (1 call, no season string guessing). */
+async function fetchSeasonPastEvents(leagueId, limit = 5) {
+  try {
+    return await fetchLeaguePastEvents(leagueId, limit);
+  } catch {
+    return [];
   }
-  /* Last resort: fall back to past-league endpoint */
-  return fetchLeaguePastEvents(leagueId, limit);
 }
 
 export async function fetchLeagueUpcomingEvents(leagueId, limit = 5) {
@@ -101,26 +149,51 @@ export async function fetchEventDetails(eventId) {
 /* Fetch last 5 completed football matches for a league key */
 export async function fetchFootballMatches(leagueKey = 'all') {
   if (leagueKey === 'worldcup') {
-    return fetchSeasonPastEvents(FOOTBALL_LEAGUES.worldcup.id, 5);
+    return fetchLeaguePastEvents(FOOTBALL_LEAGUES.worldcup.id, 5).catch(() => []);
   }
 
   const league = FOOTBALL_LEAGUES[leagueKey];
   if (league?.id) {
-    return fetchSeasonPastEvents(league.id, 5);
+    return fetchLeaguePastEvents(league.id, 5).catch(() => []);
   }
 
-  /* "All Leagues" — 1 most recent match per league, show 5 newest across all */
+  /* "All Leagues" — 1 match per league using Promise.allSettled so one failure
+     doesn't kill the whole batch (avoids cascading rate-limit errors). */
   const leagueIds = ['4328', '4335', '4332', '4331', '4334', '4480'];
-  const results = await Promise.all(leagueIds.map((id) => fetchSeasonPastEvents(id, 1)));
-  return results
-    .flat()
+  const settled = await Promise.allSettled(leagueIds.map((id) => fetchLeaguePastEvents(id, 1)));
+  return settled
+    .filter((r) => r.status === 'fulfilled')
+    .flatMap((r) => r.value)
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 5);
 }
 
 /* Fetch last 5 completed NBA matches */
 export async function fetchBasketballMatches() {
-  return fetchSeasonPastEvents(NBA_LEAGUE_ID, 5);
+  return fetchLeaguePastEvents(NBA_LEAGUE_ID, 5).catch(() => []);
+}
+
+/* Fetch recent NBA men's games — tries full 2025-26 season data first */
+export async function fetchNBASeasonMatches(limit = 10) {
+  try {
+    const data = await fetchJson(`${API_BASE}/eventsseason.php?id=4387&s=2025-2026`);
+    const events = (data.events || [])
+      .filter((e) => e.intHomeScore !== null && e.intHomeScore !== undefined && String(e.intHomeScore) !== '')
+      .sort((a, b) => new Date(b.dateEvent) - new Date(a.dateEvent))
+      .slice(0, limit)
+      .map(normalizeEvent);
+    if (events.length) return events;
+  } catch { /* fall through */ }
+  return fetchLeaguePastEvents('4387', limit).catch(() => []);
+}
+
+/* Fetch a team's trophies/honours from TheSportsDB */
+export async function fetchTeamTrophies(teamId) {
+  if (!teamId) return [];
+  try {
+    const data = await fetchJson(`${API_BASE}/lookuptrophies.php?id=${teamId}`);
+    return data.trophies || [];
+  } catch { return []; }
 }
 
 export async function fetchUpcomingMatches(limit = 5) {
@@ -356,8 +429,8 @@ export async function fetchNBAStandings(espnSeason = null) {
   return { east: [], west: [] };
 }
 
-/* Fetch all players for a team; supplements with name-search if results are thin */
-export async function fetchTeamPlayers(teamId, teamName = null) {
+/* Fetch all players for a team; supplements with ESPN soccer roster if results are thin */
+export async function fetchTeamPlayers(teamId, teamName = null, leagueName = null) {
   if (!teamId) return [];
   const seen = new Set();
   const players = [];
@@ -367,25 +440,107 @@ export async function fetchTeamPlayers(teamId, teamName = null) {
     (data.player || []).forEach((p) => { seen.add(p.idPlayer); players.push(p); });
   } catch { /* continue to fallback */ }
 
-  if (teamName && players.length < 14) {
-    try {
-      const data2 = await fetchJson(`${API_BASE}/searchplayers.php?t=${encodeURIComponent(teamName)}`);
-      (data2.player || []).forEach((p) => {
-        if (!seen.has(p.idPlayer)) { seen.add(p.idPlayer); players.push(p); }
-      });
-    } catch { /* optional */ }
+  if (leagueName && teamName && players.length < 14) {
+    const espnPlayers = await fetchESPNSoccerRoster(teamName, leagueName);
+    espnPlayers.forEach((p) => {
+      const key = p.idPlayer || p.strPlayer;
+      if (!seen.has(key)) { seen.add(key); players.push(p); }
+    });
   }
 
   return players;
 }
 
-/* Search basketball / NBA teams */
-export async function searchBasketballTeams(query) {
+/* Search NBA teams only (TheSportsDB, filtered to strLeague === "NBA") */
+export async function searchNBATeams(query) {
   if (!query || query.trim().length < 2) return [];
-  const data = await fetchJson(`${API_BASE}/searchteams.php?t=${encodeURIComponent(query.trim())}`);
-  return (data.teams || [])
-    .filter((t) => t.strSport === 'Basketball')
-    .slice(0, 8);
+  try {
+    const data = await fetchJson(`${API_BASE}/searchteams.php?t=${encodeURIComponent(query.trim())}`);
+    return (data.teams || [])
+      .filter((t) => (t.strLeague || '').toUpperCase() === 'NBA')
+      .slice(0, 8);
+  } catch { return []; }
+}
+
+/* ── ESPN soccer league slug map ─────────────────────────────────────────── */
+const LEAGUE_TO_ESPN = {
+  'english premier league': 'eng.1', 'premier league': 'eng.1',
+  'la liga': 'esp.1', 'spanish la liga': 'esp.1',
+  'bundesliga': 'ger.1', 'german bundesliga': 'ger.1',
+  'serie a': 'ita.1', 'italian serie a': 'ita.1',
+  'ligue 1': 'fra.1', 'french ligue 1': 'fra.1',
+  'champions league': 'uefa.champions', 'uefa champions league': 'uefa.champions',
+};
+
+/* Fetch a soccer team's roster via ESPN using league name + team name */
+export async function fetchESPNSoccerRoster(teamName, leagueName) {
+  const slug = LEAGUE_TO_ESPN[(leagueName || '').toLowerCase().trim()];
+  if (!slug) return [];
+  try {
+    const teamsData = await fetchJson(`${ESPN_BASE}/soccer/${slug}/teams?limit=50`);
+    const teams = (teamsData.sports?.[0]?.leagues?.[0]?.teams || []).map((t) => t.team || t);
+    const q = teamName.toLowerCase();
+    const match = teams.find(
+      (t) => (t.displayName || '').toLowerCase().includes(q) || (t.location || '').toLowerCase().includes(q)
+    );
+    if (!match) return [];
+    const rosterData = await fetchJson(`${ESPN_BASE}/soccer/${slug}/teams/${match.id}/roster`);
+    let athletes = rosterData.athletes || [];
+    if (Array.isArray(athletes[0])) athletes = athletes.flat();
+    return athletes.filter(Boolean).map((a) => ({
+      strPlayer: a.displayName || 'Unknown',
+      strPosition: a.position?.displayName || a.position?.name || '',
+      strNationality: a.birthPlace?.country || '',
+      strThumb: a.headshot?.href || '',
+      strCutout: '',
+      idPlayer: `espn_${a.id || Math.random()}`,
+    }));
+  } catch { return []; }
+}
+
+/* Fetch an NBA team's roster via ESPN */
+export async function fetchNBATeamRosterESPN(teamId) {
+  const data = await fetchJson(`${ESPN_BASE}/basketball/nba/teams/${teamId}/roster`);
+  const raw = data.athletes || (data.roster?.entries || []).map((e) => e.athlete) || [];
+  return raw.filter(Boolean).map((a) => ({
+    strPlayer: a.displayName || 'Unknown',
+    strPosition: a.position?.displayName || a.position?.name || '',
+    strNationality: a.birthPlace?.country || '',
+    strThumb: a.headshot?.href || '',
+    strCutout: '',
+    idPlayer: `espn_${a.id || Math.random()}`,
+  }));
+}
+
+/* Search NBA teams via ESPN (guaranteed NBA-only) */
+export async function searchNBATeamsESPN(query) {
+  if (!query || query.trim().length < 2) return [];
+  const q = query.trim().toLowerCase();
+  const data = await fetchJson(`${ESPN_BASE}/basketball/nba/teams?limit=100`);
+  const allTeams = (data.sports?.[0]?.leagues?.[0]?.teams || []).map((t) => t.team || t);
+  return allTeams.filter(
+    (t) =>
+      (t.displayName || '').toLowerCase().includes(q) ||
+      (t.location || '').toLowerCase().includes(q) ||
+      (t.abbreviation || '').toLowerCase().includes(q)
+  ).slice(0, 8);
+}
+
+/* Fetch all basketball games on a specific date (NBA + WNBA) */
+export async function fetchNBAGamesByDate(dateStr) {
+  try {
+    const data = await fetchJson(`${API_BASE}/eventsday.php?d=${dateStr}&s=Basketball`);
+    return (data.events || []).map(normalizeEvent);
+  } catch { return []; }
+}
+
+/* Return the date of the most recent completed NBA game */
+export async function fetchRecentNBADate() {
+  try {
+    const events = await fetchLeaguePastEvents('4387', 3);
+    if (events.length) return events[0].date;
+  } catch { /* fall through */ }
+  return new Date().toISOString().split('T')[0];
 }
 
 /* Fetch the World Cup final match for a given year from TheSportsDB */

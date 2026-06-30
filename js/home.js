@@ -66,7 +66,7 @@ function renderHallOfFame() {
         <div class="hof-card-front">
           <img src="${player.image}" alt="${player.name}" loading="lazy"
             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-          <div class="hof-img-fallback" style="display:none;width:100%;height:200px;background:var(--bg-elevated);align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:2.5rem;">
+          <div class="hof-img-fallback" style="display:none;position:absolute;inset:0;background:var(--bg-elevated);align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:2.5rem;">
             ${sportIcon(player.sport)}
             <span style="font-size:0.85rem;font-weight:700;color:var(--text-muted);">${player.name}</span>
           </div>
@@ -221,6 +221,74 @@ async function loadNews() {
   }
 }
 
+function initChatbot() {
+  const messagesEl = document.getElementById('chatbot-messages');
+  const inputEl    = document.getElementById('chatbot-input');
+  const sendBtn    = document.getElementById('chatbot-send');
+  const keyPrompt  = document.getElementById('chatbot-key-prompt');
+  const keyInput   = document.getElementById('chatbot-key-input');
+  const keySaveBtn = document.getElementById('chatbot-key-save');
+  if (!messagesEl) return;
+
+  const apiKey = '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';
+  const SYSTEM = 'You are a sports expert AI assistant for RizkZone, a sports website. You are enthusiastic and knowledgeable about football (soccer), basketball, NBA, FIFA, World Cup, Premier League, La Liga, Champions League, Serie A, Bundesliga, and all major sports worldwide. Give clear, engaging answers. You can answer non-sports questions too but always be helpful.';
+  const history = [{ role: 'system', content: SYSTEM }];
+
+  if (keyPrompt) keyPrompt.style.display = 'none';
+
+  function addMessage(text, role) {
+    const div = document.createElement('div');
+    div.className = `chat-msg chat-msg--${role}`;
+    div.textContent = text;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return div;
+  }
+
+  async function send() {
+    const text = inputEl?.value.trim();
+    if (!text) return;
+    inputEl.value = '';
+    if (sendBtn) sendBtn.disabled = true;
+    if (inputEl) inputEl.disabled = true;
+    addMessage(text, 'user');
+    history.push({ role: 'user', content: text });
+    const thinking = addMessage('⏳ Thinking…', 'bot');
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: history,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || `Error ${res.status}`);
+      }
+      const data = await res.json();
+      const reply = data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+      thinking.textContent = reply;
+      history.push({ role: 'assistant', content: reply });
+    } catch (err) {
+      thinking.textContent = `⚠ ${err.message}`;
+      history.pop();
+    } finally {
+      if (sendBtn) sendBtn.disabled = false;
+      if (inputEl) { inputEl.disabled = false; inputEl.focus(); }
+    }
+  }
+
+  sendBtn?.addEventListener('click', send);
+  inputEl?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+}
+
 updateNavAuth();
 initNav();
 initNightMode();
@@ -230,6 +298,7 @@ renderHallOfFame();
 renderHighlights();
 initFAQ();
 initFacts();
+initChatbot();
 loadFeaturedMatch();
 loadUpcoming();
 loadNews();

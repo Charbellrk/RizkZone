@@ -582,25 +582,36 @@ section {
 
 .hof-card-front {
   background: var(--bg-card);
+  overflow: hidden;
 }
 
 .hof-card-front img {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 200px;
+  height: 100%;
   object-fit: cover;
-  background: var(--bg-elevated);
+  object-position: top center;
 }
 
 .hof-card-front .hof-info {
-  padding: 16px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, transparent 100%);
+  z-index: 1;
 }
 
 .hof-card-front h3 {
   font-size: 1.1rem;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
 }
 
 .hof-card-front span {
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.8);
   font-size: 0.85rem;
 }
 
@@ -2109,6 +2120,81 @@ body.night-mode .quicknav-btn.active {
   color: #fff;
 }
 
+/* ── Team Trophies / Accomplishments ─────────────────────────────────────── */
+.trophies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.trophy-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 12px;
+  text-align: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.trophy-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+}
+.trophy-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+.trophy-count {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.trophy-seasons {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ── NBA Date Navigation ─────────────────────────────────────────────────── */
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.date-nav-btn {
+  padding: 9px 18px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.date-nav-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.date-nav-input {
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.date-nav-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 /* ── Match share button ──────────────────────────────────────────────────── */
 .match-share-btn {
   position: absolute;
@@ -2129,6 +2215,108 @@ body.night-mode .quicknav-btn.active {
   line-height: 1;
 }
 .match-share-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── AI Chatbot ──────────────────────────────────────────────────────────── */
+.chatbot-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+.chatbot-messages {
+  height: 320px;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-behavior: smooth;
+}
+.chat-msg {
+  padding: 11px 16px;
+  border-radius: 14px;
+  max-width: 82%;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.chat-msg--bot {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+.chat-msg--user {
+  background: var(--accent);
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+.chatbot-input-row {
+  display: flex;
+  border-top: 1.5px solid var(--border);
+}
+.chatbot-input-row input {
+  flex: 1;
+  padding: 13px 16px;
+  background: var(--bg-card);
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+}
+.chatbot-input-row input::placeholder { color: var(--text-muted); }
+.chatbot-input-row button {
+  padding: 13px 22px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.chatbot-input-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+.chatbot-input-row button:hover:not(:disabled) { opacity: 0.88; }
+.chatbot-key-prompt {
+  padding: 14px 18px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-elevated));
+  border-top: 1.5px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+.chatbot-key-prompt a { color: var(--accent); }
+.chatbot-key-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.chatbot-key-row input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  outline: none;
+}
+.chatbot-key-row input:focus { border-color: var(--accent); }
+.chatbot-key-row button {
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
 
 /* ── Sports News ─────────────────────────────────────────────────────────── */
 .news-grid {
