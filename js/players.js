@@ -1,14 +1,31 @@
 import { updateNavAuth } from './auth.js';
-import { fetchESPNSoccerScorers, fetchESPNNBAScorers, searchPlayers, enrichPlayersWithLeague } from './api.js';
+import { fetchESPNSoccerScorers, fetchESPNNBAScorers, fetchESPNNBACareerLeaders, searchPlayers, enrichPlayersWithLeague } from './api.js';
 import { FOOTBALL_SCORERS, BASKETBALL_SCORERS } from './data/players-data.js';
 import { showSpinner, showError, showEmpty, showPlayerModal, initLiveTicker, initNav, initNightMode } from './ui.js';
 
 let currentSport = 'football';
 
+/* ── NBA career data cache ───────────────────────────────────────────────── */
+let nbaCareerCache = null;   // null = not fetched, array = fetched (live or fallback)
+let nbaCareerIsLive = false;
+
+async function loadNBACareerCache() {
+  if (nbaCareerCache !== null) return;
+  const live = await fetchESPNNBACareerLeaders();
+  if (live && live.length >= 5) {
+    nbaCareerCache = live;
+    nbaCareerIsLive = true;
+  } else {
+    nbaCareerCache = BASKETBALL_SCORERS;
+    nbaCareerIsLive = false;
+  }
+}
+
 /* ── Career records table ────────────────────────────────────────────────── */
 
 function getCareerPlayers() {
-  return currentSport === 'football' ? FOOTBALL_SCORERS : BASKETBALL_SCORERS;
+  if (currentSport === 'football') return FOOTBALL_SCORERS;
+  return nbaCareerCache || BASKETBALL_SCORERS;
 }
 
 function renderCareerTable(filter = '') {
@@ -17,9 +34,15 @@ function renderCareerTable(filter = '') {
   const title = document.getElementById('career-table-title');
   const query = filter.toLowerCase();
 
-  title.textContent = currentSport === 'football'
+  const sourceBadge = currentSport === 'basketball'
+    ? (nbaCareerIsLive
+        ? ' <span style="font-size:0.7rem;background:#16a34a;color:#fff;padding:2px 8px;border-radius:999px;vertical-align:middle;">🔴 Live</span>'
+        : ' <span style="font-size:0.7rem;background:#6b7280;color:#fff;padding:2px 8px;border-radius:999px;vertical-align:middle;">📚 Verified</span>')
+    : ' <span style="font-size:0.7rem;background:#6b7280;color:#fff;padding:2px 8px;border-radius:999px;vertical-align:middle;">📚 Verified</span>';
+
+  title.innerHTML = (currentSport === 'football'
     ? '📋 All-Time Football Career Records'
-    : '📋 All-Time NBA Career Records';
+    : '📋 All-Time NBA Career Records') + sourceBadge;
 
   const players = getCareerPlayers().filter(
     (p) => p.name.toLowerCase().includes(query) || p.country.toLowerCase().includes(query)
@@ -140,7 +163,11 @@ document.querySelectorAll('.toggle-btn').forEach((btn) => {
     btn.setAttribute('aria-selected', 'true');
     currentSport = btn.dataset.sport;
     document.getElementById('player-search').value = '';
-    renderCareerTable();
+    if (currentSport === 'basketball') {
+      loadNBACareerCache().then(() => renderCareerTable());
+    } else {
+      renderCareerTable();
+    }
     loadSeasonLeaders();
     updateLookupPlaceholder();
   });
@@ -265,5 +292,7 @@ updateNavAuth();
 initNav();
 initNightMode();
 initLiveTicker();
-renderCareerTable();
 loadSeasonLeaders();
+
+// Pre-load NBA career cache then render; football is synchronous
+loadNBACareerCache().then(() => renderCareerTable());

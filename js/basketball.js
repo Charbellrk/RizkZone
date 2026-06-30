@@ -7,6 +7,7 @@ import {
   fetchNBAStandings,
   fetchNBATeamRosterESPN,
   searchNBATeamsESPN,
+  fetchESPNNBACareerLeaders,
 } from './api.js';
 import { BASKETBALL_SCORERS } from './data/players-data.js';
 import {
@@ -112,9 +113,26 @@ nbaDayPicker?.addEventListener('change', (e) => {
 });
 
 
-function renderScorers() {
+async function renderScorers() {
   const tbody = document.getElementById('scorers-body');
-  tbody.innerHTML = BASKETBALL_SCORERS.slice(0, 5).map((p) => `
+  const title = document.getElementById('scorers-title');
+
+  // Try live ESPN career data, fall back to hardcoded
+  let players = BASKETBALL_SCORERS;
+  let isLive = false;
+  try {
+    const live = await fetchESPNNBACareerLeaders();
+    if (live && live.length >= 5) { players = live; isLive = true; }
+  } catch { /* use hardcoded */ }
+
+  if (title) {
+    const badge = isLive
+      ? '<span style="font-size:0.7rem;background:#16a34a;color:#fff;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:middle;">🔴 Live</span>'
+      : '<span style="font-size:0.7rem;background:#6b7280;color:#fff;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:middle;">📚 Verified</span>';
+    title.innerHTML = '🏆 NBA All-Time Career Scoring Leaders' + badge;
+  }
+
+  tbody.innerHTML = players.slice(0, 5).map((p) => `
     <tr>
       <td>${p.rank}</td>
       <td>${p.name}</td>

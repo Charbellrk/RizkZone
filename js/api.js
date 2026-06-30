@@ -349,6 +349,56 @@ export async function fetchESPNNBAScorers(season = '2025') {
   return [];
 }
 
+/* NBA all-time career scoring leaders via ESPN Core API (alltime season).
+   Returns an array of player objects or null when unavailable (caller falls back). */
+export async function fetchESPNNBACareerLeaders() {
+  const ATTEMPTS = [
+    `${ESPN_CORE}/basketball/leagues/nba/seasons/alltime/types/2/leaders`,
+    `${ESPN_CORE}/basketball/leagues/nba/seasons/career/types/2/leaders`,
+  ];
+
+  for (const url of ATTEMPTS) {
+    try {
+      const data = await fetchJson(url);
+      const cats = data.categories || [];
+      const cat =
+        cats.find((c) =>
+          ['point', 'pts', 'scoring', 'total'].some(
+            (kw) => (c.name || c.displayName || '').toLowerCase().includes(kw)
+          )
+        ) || cats[0];
+      if (!cat?.leaders?.length) continue;
+
+      const entries = cat.leaders.slice(0, 25);
+      const athleteRefs = entries.map((e) => e.athlete?.$ref || '');
+
+      const athletes = await Promise.allSettled(
+        athleteRefs.map((ref) => {
+          const id = extractId(ref);
+          return id
+            ? fetchJson(`${ESPN_CORE}/basketball/leagues/nba/athletes/${id}`)
+            : Promise.resolve(null);
+        })
+      );
+
+      const rows = entries.map((e, i) => {
+        const ath = athletes[i]?.status === 'fulfilled' ? athletes[i].value : null;
+        return {
+          rank: i + 1,
+          name: ath?.displayName || ath?.fullName || '',
+          country: ath?.citizenship || ath?.birthPlace?.country || 'USA',
+          points: Math.round(e.value ?? 0),
+          active: ath?.active ?? false,
+          teams: ath?.team?.displayName || '—',
+        };
+      }).filter((r) => r.name && r.points > 1000);
+
+      if (rows.length >= 5) return rows;
+    } catch { /* try next URL */ }
+  }
+  return null; // signals caller to use hardcoded fallback
+}
+
 /* Search European football teams by name */
 export async function searchTeams(query) {
   if (!query || query.trim().length < 2) return [];
