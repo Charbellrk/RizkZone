@@ -340,6 +340,15 @@ export async function fetchESPNSoccerScorers(competition = 'eng.1', season = '20
   return [];
 }
 
+/* Football assist leaders via ESPN Core API */
+export async function fetchESPNSoccerAssists(competition = 'eng.1', season = '2025') {
+  try {
+    const leaders = await fetchCoreLeaders('soccer', competition, season, '1', ['assist']);
+    if (leaders.length) return leaders;
+  } catch { /* fall through */ }
+  return [];
+}
+
 /* NBA scoring leaders via ESPN Core API */
 export async function fetchESPNNBAScorers(season = '2025') {
   try {

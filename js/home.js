@@ -1,5 +1,5 @@
 import { updateNavAuth } from './auth.js';
-import { fetchFeaturedWCMatch, fetchWCUpcomingMatches, fetchUpcomingMatches } from './api.js';
+import { fetchFeaturedWCMatch, fetchWCUpcomingMatches, fetchUpcomingMatches, fetchESPNSoccerScorers, fetchESPNSoccerAssists, fetchESPNNBAScorers } from './api.js';
 import { HALL_OF_FAME } from './data/hall-of-fame.js';
 import { SEASON_HIGHLIGHTS } from './data/players-data.js';
 import { getRandomFact } from './data/facts.js';
@@ -37,25 +37,51 @@ function renderHallOfFame() {
   ).join('');
 }
 
-function renderHighlights() {
+async function renderHighlights() {
   const container = document.getElementById('stats-highlights');
+
+  const now = new Date();
+  const yr  = now.getFullYear();
+  const mo  = now.getMonth(); // 0-based
+
+  // Soccer season ends in May/June; Aug onwards = next season starts
+  const soccerSeason = mo >= 7 ? String(yr + 1) : String(yr);
+  const soccerLabel  = `Premier League ${parseInt(soccerSeason) - 1}/${soccerSeason.slice(2)}`;
+
+  // NBA season ends in June; Oct onwards = next season starts
+  const nbaSeason = mo >= 9 ? String(yr + 1) : String(yr);
+  const nbaLabel  = `NBA ${parseInt(nbaSeason) - 1}-${nbaSeason.slice(2)}`;
+
+  const liveBadge = '<span style="font-size:0.65rem;background:#16a34a;color:#fff;padding:1px 6px;border-radius:999px;margin-left:4px;vertical-align:middle;">🔴 Live</span>';
+
+  const [scorerRes, assistRes, nbaRes] = await Promise.allSettled([
+    fetchESPNSoccerScorers('eng.1', soccerSeason),
+    fetchESPNSoccerAssists('eng.1', soccerSeason),
+    fetchESPNNBAScorers(nbaSeason),
+  ]);
+
+  const ok = (r) => r.status === 'fulfilled' && r.value?.length;
+
   const items = [
-    { label: 'Top Scorer', ...SEASON_HIGHLIGHTS.topScorer },
-    { label: 'Top Assists', ...SEASON_HIGHLIGHTS.topAssists },
-    { label: 'Player of the Week', ...SEASON_HIGHLIGHTS.playerOfWeek },
+    ok(scorerRes)
+      ? { label: `Top Scorer${liveBadge}`,  name: scorerRes.value[0].name,  stat: `${scorerRes.value[0].displayValue} goals`,   league: `${soccerLabel} · ${scorerRes.value[0].team}` }
+      : { label: 'Top Scorer',              ...SEASON_HIGHLIGHTS.topScorer },
+    ok(assistRes)
+      ? { label: `Top Assists${liveBadge}`, name: assistRes.value[0].name,  stat: `${assistRes.value[0].displayValue} assists`, league: `${soccerLabel} · ${assistRes.value[0].team}` }
+      : { label: 'Top Assists',             ...SEASON_HIGHLIGHTS.topAssists },
+    ok(nbaRes)
+      ? { label: `NBA PPG Leader${liveBadge}`, name: nbaRes.value[0].name, stat: `${nbaRes.value[0].displayValue} PPG`,        league: `${nbaLabel} · ${nbaRes.value[0].team}` }
+      : { label: 'Player of the Week',         ...SEASON_HIGHLIGHTS.playerOfWeek },
   ];
 
   container.innerHTML = items
-    .map(
-      (item) => `
-    <div class="highlight-card fade-in">
-      <div class="label">${item.label}</div>
-      <h3>${item.name}</h3>
-      <div class="stat">${item.stat}</div>
-      <div class="league">${item.league}</div>
-    </div>
-  `
-    )
+    .map((item) => `
+      <div class="highlight-card fade-in">
+        <div class="label">${item.label}</div>
+        <h3>${item.name}</h3>
+        <div class="stat">${item.stat}</div>
+        <div class="league">${item.league}</div>
+      </div>`)
     .join('');
 }
 
