@@ -276,6 +276,76 @@ export function initNav() {
       link.classList.add('active');
     }
   });
+
+  const navInner = document.querySelector('.nav-inner');
+  const navLinks = document.querySelector('.nav-links');
+  const authWrap = document.querySelector('.nav-auth-wrap');
+  if (!navInner || !navLinks) return;
+
+  // ── Hamburger button ────────────────────────────────────────────────────
+  const hamburger = document.createElement('button');
+  hamburger.className = 'hamburger-btn';
+  hamburger.setAttribute('aria-label', 'Toggle navigation menu');
+  hamburger.setAttribute('aria-expanded', 'false');
+  hamburger.innerHTML = '<span></span><span></span><span></span>';
+  if (authWrap) {
+    authWrap.insertBefore(hamburger, authWrap.firstChild);
+  } else {
+    navInner.appendChild(hamburger);
+  }
+
+  // ── Mobile overlay menu ─────────────────────────────────────────────────
+  const overlay = document.createElement('div');
+  overlay.className = 'mobile-menu';
+  overlay.setAttribute('aria-hidden', 'true');
+
+  const clonedLinks = navLinks.cloneNode(true);
+  clonedLinks.className = 'mobile-nav-links';
+  overlay.appendChild(clonedLinks);
+
+  // Add Login link to mobile menu if the auth link exists
+  const authLink = document.getElementById('nav-auth');
+  if (authLink) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = authLink.href;
+    a.className = 'nav-link mobile-login-link';
+    a.textContent = authLink.textContent;
+    li.appendChild(a);
+    clonedLinks.appendChild(li);
+  }
+
+  document.body.appendChild(overlay);
+
+  // ── Toggle helpers ──────────────────────────────────────────────────────
+  function openMenu() {
+    hamburger.classList.add('open');
+    hamburger.setAttribute('aria-expanded', 'true');
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMenu() {
+    hamburger.classList.remove('open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  hamburger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    overlay.classList.contains('open') ? closeMenu() : openMenu();
+  });
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target.closest('a')) closeMenu();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenu();
+  });
 }
 
 export function initNightMode() {

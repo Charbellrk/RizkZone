@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ & AI Chat — RizkZone</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<script>if(localStorage.getItem('nightMode')==='true'){document.body.classList.add('night-mode');}</script>
+
+  <div class="ticker-bar">
+    <span class="ticker-label">LIVE</span>
+    <div class="ticker-track">
+      <div class="ticker-content" id="live-ticker">
+        <span class="ticker-item">Loading live scores...</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-icon">⚽<span class="spin-ball">🏀</span></span>
+        RizkZone
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="football.html" class="nav-link">⚽ Football</a></li>
+        <li><a href="basketball.html" class="nav-link">🏀 Basketball</a></li>
+        <li><a href="worldcup.html" class="nav-link">🏆 World Cup</a></li>
+        <li><a href="players.html" class="nav-link">Players</a></li>
+        <li><a href="games.html" class="nav-link">Mini Games</a></li>
+        <li><a href="faq.html" class="nav-link active">❓ FAQ</a></li>
+      </ul>
+      <div class="nav-auth-wrap">
+        <button class="nav-chat-btn" id="nav-chat-toggle" title="Open AI sports chat">🤖 Ask AI</button>
+        <button class="night-mode-btn" id="night-mode-toggle" title="Toggle night mode">🌙</button>
+        <span class="nav-user hidden" id="nav-user"></span>
+        <a href="login.html" class="btn-auth" id="nav-auth">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="guest-banner hidden" id="guest-banner">
+    You're browsing as a guest. <a href="login.html">Sign up</a> for full access to all matches and mini games.
+  </div>
+
+  <header class="page-header">
+    <div class="container">
+      <h1>❓ FAQ & AI Chat</h1>
+      <p>Answers to your questions about RizkZone, football, and basketball — plus our AI sports assistant</p>
+    </div>
+  </header>
+
+  <!-- Category filters -->
+  <div class="faq-filter-bar">
+    <div class="container">
+      <div class="faq-filter-btns">
+        <button class="faq-filter-btn active" data-cat="all">All Questions</button>
+        <button class="faq-filter-btn" data-cat="general">🔧 General</button>
+        <button class="faq-filter-btn" data-cat="football">⚽ Football</button>
+        <button class="faq-filter-btn" data-cat="basketball">🏀 Basketball</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="faq">
+    <div class="container">
+      <div class="section-header">
+        <div class="faq-badge">❓ Need Answers?</div>
+        <h2>Frequently Asked Questions</h2>
+        <p>Everything you need to know about RizkZone, football, and basketball — answered clearly and quickly</p>
+      </div>
+      <div class="faq-list" id="faq-list"></div>
+    </div>
+  </section>
+
+  <!-- AI Sports Chatbot -->
+  <section class="alt-bg" id="chatbot-section">
+    <div class="container">
+      <div class="section-header">
+        <h2>🤖 Ask the Sports AI</h2>
+        <p>Ask me anything you want — especially about sports! Powered by Groq AI</p>
+      </div>
+      <div class="chatbot-wrap">
+        <div class="chatbot-messages" id="chatbot-messages">
+          <div class="chat-msg chat-msg--bot">
+            👋 Hi! I'm your RizkZone Sports AI. Ask me anything about football, basketball, NBA, FIFA, players, match results — or anything else!
+          </div>
+        </div>
+        <div class="chatbot-input-row">
+          <input type="text" id="chatbot-input" placeholder="Ask me anything — especially sports…" autocomplete="off">
+          <button id="chatbot-send">Send ➤</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h4>RizkZone</h4>
+          <p>Your modern sports hub for live data, statistics, and interactive fan experiences.</p>
+        </div>
+        <div>
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="football.html">⚽ Football</a></li>
+            <li><a href="basketball.html">🏀 Basketball</a></li>
+            <li><a href="players.html">Players</a></li>
+            <li><a href="games.html">Mini Games</a></li>
+            <li><a href="faq.html">❓ FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Data Source</h4>
+          <p>Live sports data powered by TheSportsDB API. Statistics and facts curated by our editorial team.</p>
+        </div>
+        <div>
+          <h4>Contact Us</h4>
+          <p>📧 <a class="footer-contact-link" href="mailto:charbel04rk@gmail.com">charbel04rk@gmail.com</a></p>
+          <p>💬 WhatsApp: <a class="footer-contact-link" href="https://wa.me/96170267806">70/267806</a></p>
+          <p style="margin-top:8px;">© 2026 RizkZone. All rights reserved.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        Built with passion for sports fans everywhere — RizkZone 🏆
+      </div>
+    </div>
+  </footer>
+
+  <!-- Navbar floating chat panel -->
+  <div class="nav-chatbox" id="nav-chatbox" aria-hidden="true">
+    <div class="nav-chatbox-header">
+      <span>🤖 RizkZone Sports AI</span>
+      <button class="nav-chatbox-close" id="nav-chatbox-close" title="Close">✕</button>
+    </div>
+    <div class="nav-chatbox-messages" id="nav-chatbot-messages">
+      <div class="chat-msg chat-msg--bot">
+        👋 Hi! Ask me anything about football, basketball, or any sport!
+      </div>
+    </div>
+    <div class="nav-chatbox-input-row">
+      <input type="text" id="nav-chatbot-input" placeholder="Ask me anything…" autocomplete="off">
+      <button id="nav-chatbot-send">➤</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/faq.js"></script>
+</body>
+</html>
