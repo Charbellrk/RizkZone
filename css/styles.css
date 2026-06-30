@@ -2463,6 +2463,16 @@ body.night-mode .quicknav-btn.active {
   padding-top: 36px;
   border-top: 2px solid var(--border);
 }
+
+#section-matches {
+  padding-top: 0;
+}
+
+#section-matches .bball-date-section:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
 .bball-date-section .section-header h2 {
   font-size: 1.6rem;
 }
