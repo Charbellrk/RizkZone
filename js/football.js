@@ -395,14 +395,26 @@ leagueDatePicker?.addEventListener('change', (e) => {
   if (e.target.value) loadLeagueDay(e.target.value);
 });
 
-/* When league changes, reload the date section with new league */
+/* Find the most recent match date for a league via TheSportsDB past events */
+async function getLastMatchDate(leagueKey) {
+  try {
+    const queryKey = leagueKey === 'all' ? 'premier' : leagueKey;
+    const matches = await fetchFootballMatches(queryKey);
+    if (matches.length) {
+      const dates = matches.map((m) => m.date).filter((d) => d && /^\d{4}-\d{2}-\d{2}$/.test(d));
+      if (dates.length) return dates.sort().at(-1);
+    }
+  } catch { /* fall through */ }
+  return new Date().toISOString().split('T')[0];
+}
+
+/* When league changes, jump to the last match date for the new league */
 document.getElementById('league-filter')?.addEventListener('change', () => {
-  if (leagueDateCurrent) loadLeagueDay(leagueDateCurrent);
+  getLastMatchDate(getCurrentLeagueKey()).then(loadLeagueDay);
 });
 
-/* Default to today */
-const todayStr = new Date().toISOString().split('T')[0];
-loadLeagueDay(todayStr);
+/* On load: start on the date of the last match for the default league */
+getLastMatchDate(getCurrentLeagueKey()).then(loadLeagueDay);
 
 /* ── Init ────────────────────────────────────────────────────────────────── */
 loadStandings('4328', standingsSeasonSel?.value || null);
