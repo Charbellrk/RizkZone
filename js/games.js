@@ -38,7 +38,52 @@ function fireConfetti() {
   tick();
 }
 
-/* ── Sports Trivia (OpenTrivia DB) ──────────────────────────────────────── */
+/* ── Sports Trivia — Football & Basketball only ──────────────────────────── */
+const TRIVIA_BANK = [
+  // ── Football ──────────────────────────────────────────────────────────────
+  { q: 'Who has scored the most goals in FIFA World Cup history?', a: 'Miroslav Klose', opts: ['Ronaldo Nazário', 'Just Fontaine', 'Pelé', 'Miroslav Klose'], sport: '⚽' },
+  { q: 'Which country has won the most FIFA World Cup titles?', a: 'Brazil', opts: ['Germany', 'Italy', 'Argentina', 'Brazil'], sport: '⚽' },
+  { q: 'Who scored the famous "Hand of God" goal in the 1986 World Cup?', a: 'Diego Maradona', opts: ['Pelé', 'Ronaldo', 'Zidane', 'Diego Maradona'], sport: '⚽' },
+  { q: 'In which year was the first FIFA World Cup held?', a: '1930', opts: ['1926', '1934', '1938', '1930'], sport: '⚽' },
+  { q: 'Which club has won the most UEFA Champions League titles?', a: 'Real Madrid', opts: ['Barcelona', 'Bayern Munich', 'AC Milan', 'Real Madrid'], sport: '⚽' },
+  { q: 'Which player has won the Ballon d\'Or the most times?', a: 'Lionel Messi', opts: ['Cristiano Ronaldo', 'Ronaldinho', 'Zinedine Zidane', 'Lionel Messi'], sport: '⚽' },
+  { q: 'Which country hosted the 2022 FIFA World Cup?', a: 'Qatar', opts: ['UAE', 'Saudi Arabia', 'Egypt', 'Qatar'], sport: '⚽' },
+  { q: 'How long is a standard football match (excluding extra time)?', a: '90 minutes', opts: ['80 minutes', '100 minutes', '120 minutes', '90 minutes'], sport: '⚽' },
+  { q: 'What colour card results in an immediate ejection from a football match?', a: 'Red', opts: ['Yellow', 'Orange', 'Blue', 'Red'], sport: '⚽' },
+  { q: 'In which city is the Camp Nou stadium located?', a: 'Barcelona', opts: ['Madrid', 'Lisbon', 'Milan', 'Barcelona'], sport: '⚽' },
+  { q: 'Who is nicknamed "The Egyptian King" and plays for Liverpool?', a: 'Mohamed Salah', opts: ['Sadio Mané', 'Riyad Mahrez', 'Pierre-Emerick Aubameyang', 'Mohamed Salah'], sport: '⚽' },
+  { q: 'Which nation won the 2021 UEFA European Championship?', a: 'Italy', opts: ['France', 'England', 'Spain', 'Italy'], sport: '⚽' },
+  { q: 'Who was the top scorer at the 2018 FIFA World Cup?', a: 'Harry Kane', opts: ['Cristiano Ronaldo', 'Antoine Griezmann', 'Kylian Mbappé', 'Harry Kane'], sport: '⚽' },
+  { q: 'What does "FIFA" stand for?', a: 'Fédération Internationale de Football Association', opts: ['Fédération Internationale de Football Association', 'Federation of International Football Associations', 'Football International Federation of Athletes', 'Federal Institute of Football Administration'], sport: '⚽' },
+  { q: 'Which country won the inaugural Copa América in 1916?', a: 'Uruguay', opts: ['Argentina', 'Brazil', 'Chile', 'Uruguay'], sport: '⚽' },
+  { q: 'Cristiano Ronaldo began his club career at which Portuguese club?', a: 'Sporting CP', opts: ['Benfica', 'Porto', 'Braga', 'Sporting CP'], sport: '⚽' },
+  { q: 'Which club did Zinedine Zidane score a famous volley for in the 2002 Champions League Final?', a: 'Real Madrid', opts: ['Juventus', 'AC Milan', 'Barcelona', 'Real Madrid'], sport: '⚽' },
+  { q: 'Germany famously beat Brazil 7–1 in which tournament in 2014?', a: 'FIFA World Cup semi-final', opts: ['UEFA Nations League', 'FIFA World Cup final', 'Friendly match', 'FIFA World Cup semi-final'], sport: '⚽' },
+  { q: 'Who is the all-time top scorer in the English Premier League?', a: 'Alan Shearer', opts: ['Wayne Rooney', 'Andrew Cole', 'Frank Lampard', 'Alan Shearer'], sport: '⚽' },
+  { q: 'In which year did Argentina last win the FIFA World Cup before 2022?', a: '1986', opts: ['1978', '1990', '1994', '1986'], sport: '⚽' },
+  // ── Basketball ────────────────────────────────────────────────────────────
+  { q: 'Who holds the NBA all-time regular season scoring record?', a: 'LeBron James', opts: ['Kareem Abdul-Jabbar', 'Karl Malone', 'Kobe Bryant', 'LeBron James'], sport: '🏀' },
+  { q: 'Which NBA player scored 100 points in a single game?', a: 'Wilt Chamberlain', opts: ['Michael Jordan', 'Kobe Bryant', 'LeBron James', 'Wilt Chamberlain'], sport: '🏀' },
+  { q: 'Who invented basketball?', a: 'James Naismith', opts: ['Michael Jordan', 'Larry Bird', 'Bob Cousy', 'James Naismith'], sport: '🏀' },
+  { q: 'What is the shot clock duration in NBA games?', a: '24 seconds', opts: ['30 seconds', '20 seconds', '35 seconds', '24 seconds'], sport: '🏀' },
+  { q: 'How many players from each team are on the court at one time in basketball?', a: '5', opts: ['4', '6', '7', '5'], sport: '🏀' },
+  { q: 'Which NBA team has won the most championships?', a: 'Boston Celtics', opts: ['Los Angeles Lakers', 'Chicago Bulls', 'Golden State Warriors', 'Boston Celtics'], sport: '🏀' },
+  { q: 'What is the height of a regulation NBA basketball hoop from the floor?', a: '10 feet (3.05 m)', opts: ['9 feet (2.74 m)', '11 feet (3.35 m)', '12 feet (3.66 m)', '10 feet (3.05 m)'], sport: '🏀' },
+  { q: 'Who is known by the nickname "The Black Mamba"?', a: 'Kobe Bryant', opts: ['LeBron James', 'Dwyane Wade', 'Kevin Durant', 'Kobe Bryant'], sport: '🏀' },
+  { q: 'What does NBA stand for?', a: 'National Basketball Association', opts: ['National Basketball Academy', 'North Basketball Association', 'National Basketball Athletics', 'National Basketball Association'], sport: '🏀' },
+  { q: 'In which year was the three-point line introduced in the NBA?', a: '1979', opts: ['1975', '1983', '1985', '1979'], sport: '🏀' },
+  { q: 'Which player has the nickname "The Greek Freak"?', a: 'Giannis Antetokounmpo', opts: ['Nikola Jokić', 'Luka Dončić', 'Jayson Tatum', 'Giannis Antetokounmpo'], sport: '🏀' },
+  { q: 'Which team did Michael Jordan win all 6 of his NBA championships with?', a: 'Chicago Bulls', opts: ['Washington Wizards', 'Detroit Pistons', 'Los Angeles Lakers', 'Chicago Bulls'], sport: '🏀' },
+  { q: 'Nikola Jokić plays for which NBA team?', a: 'Denver Nuggets', opts: ['Oklahoma City Thunder', 'Minnesota Timberwolves', 'Phoenix Suns', 'Denver Nuggets'], sport: '🏀' },
+  { q: 'Who holds the NBA record for most three-pointers made in a career?', a: 'Stephen Curry', opts: ['Ray Allen', 'Reggie Miller', 'Klay Thompson', 'Stephen Curry'], sport: '🏀' },
+  { q: 'Which country does NBA star Luka Dončić represent internationally?', a: 'Slovenia', opts: ['Croatia', 'Serbia', 'Bosnia', 'Slovenia'], sport: '🏀' },
+  { q: 'What is the term for scoring two points by dunking or shooting from inside the arc?', a: 'Field goal', opts: ['Free throw', 'Slam', 'Layup goal', 'Field goal'], sport: '🏀' },
+  { q: 'Who won the NBA MVP award the most times (4 times)?', a: 'Kareem Abdul-Jabbar', opts: ['LeBron James', 'Michael Jordan', 'Bill Russell', 'Kareem Abdul-Jabbar'], sport: '🏀' },
+  { q: 'The shortest player ever in NBA history (5\'3") was who?', a: 'Muggsy Bogues', opts: ['Spud Webb', 'Calvin Murphy', 'Isaiah Thomas', 'Muggsy Bogues'], sport: '🏀' },
+  { q: 'Which NBA team set the regular season wins record with 73 wins in 2015-16?', a: 'Golden State Warriors', opts: ['Chicago Bulls', 'Los Angeles Lakers', 'San Antonio Spurs', 'Golden State Warriors'], sport: '🏀' },
+  { q: 'Which country did Hakeem Olajuwon originally come from before playing in the NBA?', a: 'Nigeria', opts: ['Ghana', 'Senegal', 'Cameroon', 'Nigeria'], sport: '🏀' },
+];
+
 class TriviaGame {
   constructor() {
     this.score = 0;
@@ -49,40 +94,26 @@ class TriviaGame {
     this.statusEl = document.getElementById('trivia-status');
   }
 
-  decode(html) {
-    const el = document.createElement('textarea');
-    el.innerHTML = html;
-    return el.value;
-  }
-
   shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+      [a[i], a[j]] = [a[j], a[i]];
     }
-    return arr;
+    return a;
   }
 
-  async start() {
-    this.score = 0; this.current = 0; this.questions = [];
+  start() {
+    this.score = 0; this.current = 0;
+    this.questions = this.shuffle(TRIVIA_BANK).slice(0, 10).map((q) => ({
+      question: `${q.sport} ${q.q}`,
+      correct: q.a,
+      options: this.shuffle(q.opts),
+      difficulty: q.sport === '⚽' ? 'football' : 'basketball',
+    }));
     this.updateUI();
-    this.statusEl.textContent = 'Loading questions…';
-    this.area.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
-    try {
-      const res = await fetch('https://opentdb.com/api.php?amount=10&category=21&type=multiple');
-      const data = await res.json();
-      if (data.response_code !== 0) throw new Error('No questions returned');
-      this.questions = data.results.map((q) => ({
-        question: this.decode(q.question),
-        correct: this.decode(q.correct_answer),
-        options: this.shuffle([q.correct_answer, ...q.incorrect_answers].map((a) => this.decode(a))),
-        difficulty: q.difficulty,
-      }));
-      this.showQuestion();
-    } catch {
-      this.area.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px 0;">Could not load questions — check your connection and try again.</p>';
-      this.statusEl.textContent = 'Error';
-    }
+    this.statusEl.textContent = 'Good luck!';
+    this.showQuestion();
   }
 
   showQuestion() {
