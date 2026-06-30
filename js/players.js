@@ -1,22 +1,24 @@
 import { updateNavAuth } from './auth.js';
 import { fetchESPNSoccerScorers, fetchESPNNBAScorers, fetchESPNNBACareerLeaders, searchPlayers, enrichPlayersWithLeague } from './api.js';
-import { FOOTBALL_SCORERS, BASKETBALL_SCORERS } from './data/players-data.js';
+import { FOOTBALL_SCORERS } from './data/players-data.js';
 import { showSpinner, showError, showEmpty, showPlayerModal, initLiveTicker, initNav, initNightMode } from './ui.js';
 
 let currentSport = 'football';
 
 /* ── NBA career data cache ───────────────────────────────────────────────── */
-let nbaCareerCache = null;   // null = not fetched, array = fetched (live or fallback)
+let nbaCareerCache = null;     // null = not yet attempted, [] = attempted but failed, [...] = live data
 let nbaCareerIsLive = false;
+let nbaCareerAttempted = false;
 
 async function loadNBACareerCache() {
-  if (nbaCareerCache !== null) return;
+  if (nbaCareerAttempted) return;
+  nbaCareerAttempted = true;
   const live = await fetchESPNNBACareerLeaders();
   if (live && live.length >= 5) {
     nbaCareerCache = live;
     nbaCareerIsLive = true;
   } else {
-    nbaCareerCache = BASKETBALL_SCORERS;
+    nbaCareerCache = [];
     nbaCareerIsLive = false;
   }
 }
@@ -25,7 +27,7 @@ async function loadNBACareerCache() {
 
 function getCareerPlayers() {
   if (currentSport === 'football') return FOOTBALL_SCORERS;
-  return nbaCareerCache || BASKETBALL_SCORERS;
+  return nbaCareerCache || [];
 }
 
 function renderCareerTable(filter = '') {
@@ -34,10 +36,17 @@ function renderCareerTable(filter = '') {
   const title = document.getElementById('career-table-title');
   const query = filter.toLowerCase();
 
+  if (currentSport === 'basketball' && nbaCareerAttempted && !nbaCareerIsLive) {
+    title.innerHTML = '📋 All-Time NBA Career Records';
+    thead.innerHTML = '';
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);">
+      ⚠️ NBA career data temporarily unavailable from ESPN. Please try again later.
+    </td></tr>`;
+    return;
+  }
+
   const sourceBadge = currentSport === 'basketball'
-    ? (nbaCareerIsLive
-        ? ' <span style="font-size:0.7rem;background:#16a34a;color:#fff;padding:2px 8px;border-radius:999px;vertical-align:middle;">🔴 Live</span>'
-        : ' <span style="font-size:0.7rem;background:#6b7280;color:#fff;padding:2px 8px;border-radius:999px;vertical-align:middle;">📚 Verified</span>')
+    ? ' <span style="font-size:0.7rem;background:#16a34a;color:#fff;padding:2px 8px;border-radius:999px;vertical-align:middle;">🔴 Live</span>'
     : ' <span style="font-size:0.7rem;background:#6b7280;color:#fff;padding:2px 8px;border-radius:999px;vertical-align:middle;">📚 Verified</span>';
 
   title.innerHTML = (currentSport === 'football'

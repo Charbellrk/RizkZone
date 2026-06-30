@@ -9,7 +9,6 @@ import {
   searchNBATeamsESPN,
   fetchESPNNBACareerLeaders,
 } from './api.js';
-import { BASKETBALL_SCORERS } from './data/players-data.js';
 import {
   showSpinner,
   showError,
@@ -117,19 +116,23 @@ async function renderScorers() {
   const tbody = document.getElementById('scorers-body');
   const title = document.getElementById('scorers-title');
 
-  // Try live ESPN career data, fall back to hardcoded
-  let players = BASKETBALL_SCORERS;
-  let isLive = false;
+  let players = null;
   try {
     const live = await fetchESPNNBACareerLeaders();
-    if (live && live.length >= 5) { players = live; isLive = true; }
-  } catch { /* use hardcoded */ }
+    if (live && live.length >= 5) players = live;
+  } catch { /* API unavailable */ }
+
+  if (!players) {
+    if (title) title.innerHTML = '🏆 NBA All-Time Career Scoring Leaders';
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted);">
+      ⚠️ NBA career data temporarily unavailable. Please try again later.
+    </td></tr>`;
+    return;
+  }
 
   if (title) {
-    const badge = isLive
-      ? '<span style="font-size:0.7rem;background:#16a34a;color:#fff;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:middle;">🔴 Live</span>'
-      : '<span style="font-size:0.7rem;background:#6b7280;color:#fff;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:middle;">📚 Verified</span>';
-    title.innerHTML = '🏆 NBA All-Time Career Scoring Leaders' + badge;
+    title.innerHTML = '🏆 NBA All-Time Career Scoring Leaders'
+      + '<span style="font-size:0.7rem;background:#16a34a;color:#fff;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:middle;">🔴 Live</span>';
   }
 
   tbody.innerHTML = players.slice(0, 5).map((p) => `
