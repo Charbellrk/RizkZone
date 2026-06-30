@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>World Cup — RizkZone</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<script>if(localStorage.getItem('nightMode')==='true'){document.body.classList.add('night-mode');}</script>
+
+  <div class="ticker-bar">
+    <span class="ticker-label">LIVE</span>
+    <div class="ticker-track">
+      <div class="ticker-content" id="live-ticker">
+        <span class="ticker-item">Loading live scores...</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-icon">🏆</span>
+        RizkZone
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="football.html" class="nav-link">⚽ Football</a></li>
+        <li><a href="basketball.html" class="nav-link">🏀 Basketball</a></li>
+        <li><a href="worldcup.html" class="nav-link">🏆 World Cup</a></li>
+        <li><a href="players.html" class="nav-link">Players</a></li>
+        <li><a href="games.html" class="nav-link">Mini Games</a></li>
+      </ul>
+      <div class="nav-auth-wrap">
+        <button class="night-mode-btn" id="night-mode-toggle" title="Toggle night mode">🌙</button>
+        <span class="nav-user hidden" id="nav-user"></span>
+        <a href="login.html" class="btn-auth" id="nav-auth">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <div class="container">
+      <h1>🏆 FIFA World Cup</h1>
+      <p>Live 2026 tracker · Past results · Upcoming fixtures · All-time winners</p>
+    </div>
+  </header>
+
+  <main>
+    <!-- Quick-nav -->
+    <div class="page-quicknav" id="page-quicknav">
+      <div class="container">
+        <div class="quicknav-btns">
+          <a href="#section-wc2026"   class="quicknav-btn">🌍 WC 2026</a>
+          <a href="#section-wcdate"   class="quicknav-btn">📅 Browse by Date</a>
+          <a href="#section-winners"  class="quicknav-btn">🥇 All-Time Winners</a>
+          <a href="#section-wcsearch" class="quicknav-btn">🔍 Country Search</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- WC 2026 Tracker -->
+    <section id="section-wc2026">
+      <div class="container">
+        <div class="section-header" style="text-align:left;margin-bottom:20px;">
+          <h2>🌍 FIFA World Cup 2026 — All Matches</h2>
+          <p>USA · Canada · Mexico · June–July 2026 · Live from ESPN</p>
+        </div>
+        <div class="controls-bar" style="margin-bottom:20px;">
+          <button class="btn btn-accent wc26-tab active" data-tab="past">✅ Past Results</button>
+          <button class="btn wc26-tab" data-tab="upcoming">📅 Upcoming Fixtures</button>
+          <button class="btn wc26-tab" data-tab="all">📋 All Matches</button>
+        </div>
+        <div id="wc2026-container">
+          <div class="spinner-wrap"><div class="spinner"></div><p>Loading World Cup 2026…</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WC 2026 Browse by Date -->
+    <section class="alt-bg" id="section-wcdate">
+      <div class="container">
+        <div class="bball-date-section" style="margin-top:0;padding-top:0;border-top:none;">
+          <div class="section-header" style="text-align:left;margin-bottom:16px;">
+            <h2>📅 Browse WC 2026 by Date</h2>
+            <p id="wcdate-count">Pick a date to see match scores</p>
+          </div>
+          <div id="wcdate-container">
+            <div class="state-message" style="color:var(--text-muted);text-align:center;padding:24px;">
+              Select a date below ↓
+            </div>
+          </div>
+          <div class="date-nav">
+            <button class="date-nav-btn" id="wcdate-prev">← Prev Day</button>
+            <input type="date" class="date-nav-input" id="wcdate-picker" aria-label="Select WC date">
+            <button class="date-nav-btn" id="wcdate-next">Next Day →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- All-Time Winners -->
+    <section id="section-winners">
+      <div class="container">
+        <div class="section-header" style="text-align:left;margin-bottom:16px;">
+          <h2>🥇 All-Time World Cup Winners</h2>
+          <p>Every edition from 1930 to 2022 · Latest final details via TheSportsDB API</p>
+        </div>
+        <div id="wc-winners-grid" class="wc-grid">
+          <div class="spinner-wrap"><div class="spinner"></div><p>Loading…</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Country Search -->
+    <section class="alt-bg" id="section-wcsearch">
+      <div class="container">
+        <div class="section-header" style="text-align:left;margin-bottom:16px;">
+          <h2>🔍 Country Search</h2>
+          <p>Find how many times a country has won the World Cup</p>
+        </div>
+        <div class="controls-bar" style="margin-bottom:20px;">
+          <input type="search" class="search-input" id="wc-country-search"
+            placeholder="Search a country (e.g. Argentina, France, Brazil)…"
+            aria-label="Search World Cup winners" autocomplete="off">
+        </div>
+        <div id="wc-country-result"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        © 2026 RizkZone. World Cup data via ESPN &amp; TheSportsDB. &nbsp;|&nbsp;
+        📧 <a href="mailto:charbel04rk@gmail.com">charbel04rk@gmail.com</a> &nbsp;|&nbsp;
+        💬 WhatsApp: <a href="https://wa.me/96170267806">70/267806</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="js/worldcup.js"></script>
+</body>
+</html>

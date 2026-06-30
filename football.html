@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -28,6 +28,7 @@
         <li><a href="index.html" class="nav-link">Home</a></li>
         <li><a href="football.html" class="nav-link">⚽ Football</a></li>
         <li><a href="basketball.html" class="nav-link">🏀 Basketball</a></li>
+        <li><a href="worldcup.html" class="nav-link">🏆 World Cup</a></li>
         <li><a href="players.html" class="nav-link">Players</a></li>
         <li><a href="games.html" class="nav-link">Mini Games</a></li>
       </ul>
@@ -56,11 +57,10 @@
       <div class="container">
         <div class="quicknav-btns">
           <a href="#section-matches"   class="quicknav-btn">⚽ Matches</a>
-          <a href="#section-wc2026"    class="quicknav-btn">🌍 WC 2026</a>
-          <a href="#section-worldcup"  class="quicknav-btn">🏆 WC History</a>
           <a href="#section-teams"     class="quicknav-btn">🔍 Team Finder</a>
           <a href="#section-standings" class="quicknav-btn">📊 Standings</a>
           <a href="#section-scorers"   class="quicknav-btn">🥇 Top Scorers</a>
+          <a href="worldcup.html"      class="quicknav-btn">🏆 World Cup →</a>
         </div>
       </div>
     </div>
@@ -77,7 +77,7 @@
             <option value="ligue1">Ligue 1</option>
             <option value="champions">Champions League</option>
           </select>
-          <button class="btn btn-accent" id="world-cup-btn">🏆 World Cup Matches</button>
+          <a href="worldcup.html" class="btn btn-accent">🏆 World Cup →</a>
         </div>
 
         <div class="section-header" style="text-align:left;margin-bottom:20px;">
@@ -113,43 +113,6 @@
             <input type="date" class="date-nav-input" id="league-date-picker" aria-label="Select match date">
             <button class="date-nav-btn" id="league-date-next">Next Day →</button>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- World Cup 2026 Live Tracker -->
-    <section id="section-wc2026">
-      <div class="container">
-        <div class="section-header" style="text-align:left;margin-bottom:20px;">
-          <h2>🌍 FIFA World Cup 2026</h2>
-          <p>All matches · Past results &amp; upcoming fixtures · Live from ESPN</p>
-        </div>
-        <div class="controls-bar" style="margin-bottom:20px;">
-          <button class="btn btn-accent wc26-tab active" data-tab="past">✅ Past Results</button>
-          <button class="btn wc26-tab" data-tab="upcoming">📅 Upcoming Fixtures</button>
-          <button class="btn wc26-tab" data-tab="all">📋 All Matches</button>
-        </div>
-        <div id="wc2026-container">
-          <div class="spinner-wrap"><div class="spinner"></div><p>Loading World Cup 2026…</p></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- World Cup Winners by Year -->
-    <section class="alt-bg" id="section-worldcup">
-      <div class="container">
-        <div class="section-header" style="text-align:left;margin-bottom:16px;">
-          <h2>🏆 FIFA World Cup Winners</h2>
-          <p>Every edition from 1930 to 2022 · Latest final details via TheSportsDB API</p>
-        </div>
-        <div class="controls-bar" style="margin-bottom:20px;">
-          <input type="search" class="search-input" id="wc-country-search"
-            placeholder="Search a country (e.g. Argentina, France, Brazil)…"
-            aria-label="Search World Cup winners" autocomplete="off">
-        </div>
-        <div id="wc-country-result" style="margin-bottom:20px;"></div>
-        <div id="wc-winners-grid" class="wc-grid">
-          <div class="spinner-wrap"><div class="spinner"></div><p>Loading…</p></div>
         </div>
       </div>
     </section>
