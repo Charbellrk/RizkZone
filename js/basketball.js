@@ -95,7 +95,7 @@ function confTable(entries, confName, emoji) {
 }
 
 function renderNBAStandings(data) {
-  const { east, west } = data;
+  const { east, west, fallback } = data;
   if (!east.length && !west.length) {
     nbaStandingsContainer.innerHTML = `
       <div class="state-message state-empty">
@@ -104,10 +104,15 @@ function renderNBAStandings(data) {
       </div>`;
     return;
   }
+  const eastLabel = fallback ? 'Top 5 (Rank 1–5)' : 'Eastern Conference';
+  const westLabel = fallback ? 'Top 5 (Rank 6–10)' : 'Western Conference';
+  const eastEmoji = fallback ? '🏅' : '🏢';
+  const westEmoji = fallback ? '🏅' : '🏜';
   nbaStandingsContainer.innerHTML = `
+    ${fallback ? '<p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:12px;">Conference data unavailable — showing overall rankings via TheSportsDB</p>' : ''}
     <div class="nba-standings-grid">
-      ${confTable(east, 'Eastern Conference', '🏢')}
-      ${confTable(west, 'Western Conference', '🏜')}
+      ${confTable(east, eastLabel, eastEmoji)}
+      ${confTable(west, westLabel, westEmoji)}
     </div>`;
 }
 
@@ -161,7 +166,7 @@ async function loadBballTeamSquad(teamId, teamName) {
   if (!bballTeamRoster) return;
   bballTeamRoster.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>Loading squad…</p></div>';
   bballTeamRoster.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  const players = await fetchTeamPlayers(teamId);
+  const players = await fetchTeamPlayers(teamId, teamName);
   if (!players.length) {
     bballTeamRoster.innerHTML = `
       <div class="state-message state-empty">
@@ -229,7 +234,7 @@ bballTeamInput?.addEventListener('input', (e) => {
 /* ── Quick-nav scroll spy ────────────────────────────────────────────────── */
 
 const quicknavBtns = document.querySelectorAll('.quicknav-btn');
-const sections = ['section-matches', 'section-scorers', 'section-standings', 'section-teams']
+const sections = ['section-matches', 'section-standings', 'section-teams', 'section-scorers']
   .map((id) => document.getElementById(id))
   .filter(Boolean);
 

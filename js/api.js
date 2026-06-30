@@ -298,50 +298,85 @@ export async function fetchLeagueTable(leagueId, season = null) {
   }
 }
 
-/* Fetch NBA standings (top 5 East + top 5 West) from ESPN */
+/* Fetch NBA standings — tries ESPN (multiple formats) then TheSportsDB flat fallback */
 export async function fetchNBAStandings(espnSeason = null) {
-  const url = espnSeason
-    ? `${ESPN_BASE}/basketball/nba/standings?season=${espnSeason}`
-    : `${ESPN_BASE}/basketball/nba/standings`;
-  try {
-    const data = await fetchJson(url);
-    const result = { east: [], west: [] };
-    (data.children || []).forEach((conf) => {
-      const name = (conf.name || conf.abbreviation || '').toLowerCase();
-      const isEast = name.includes('east');
-      const entries = (conf.standings?.entries || []).map((e) => {
-        const stats = {};
-        (e.stats || []).forEach((s) => { stats[s.name] = s.value; });
-        const gb = stats.gamesBehind ?? stats.divisionGamesBehind ?? null;
-        return {
-          team: e.team?.displayName || 'Unknown',
-          logo: e.team?.logos?.[0]?.href || '',
-          wins: Math.round(stats.wins ?? 0),
-          losses: Math.round(stats.losses ?? 0),
-          pct: stats.winPercent ?? 0,
-          gb: gb == null ? '—' : gb === 0 ? '—' : parseFloat(gb).toFixed(1),
-        };
-      })
-      .sort((a, b) => b.pct - a.pct)
-      .slice(0, 5);
-      if (isEast) result.east = entries;
-      else result.west = entries;
-    });
-    return result;
-  } catch {
-    return { east: [], west: [] };
+  const season = espnSeason || '2025';
+
+  const espnUrls = [
+    `${ESPN_BASE}/basketball/nba/standings?season=${season}`,
+    `https://site.web.api.espn.com/apis/v2/sports/basketball/nba/standings?season=${season}&seasontype=2&type=0`,
+  ];
+
+  for (const url of espnUrls) {
+    try {
+      const data = await fetchJson(url);
+      const groups = data.children || data.groups || data.standings?.groups || [];
+      if (!groups.length) continue;
+      const result = { east: [], west: [] };
+      let hasData = false;
+      groups.forEach((conf) => {
+        const name = (conf.name || conf.abbreviation || '').toLowerCase();
+        const isEast = name.includes('east');
+        const entries = (conf.standings?.entries || conf.entries || []).map((e) => {
+          const stats = {};
+          (e.stats || []).forEach((s) => { stats[s.name] = s.value; });
+          const gb = stats.gamesBehind ?? stats.divisionGamesBehind ?? null;
+          return {
+            team: e.team?.displayName || 'Unknown',
+            logo: e.team?.logos?.[0]?.href || '',
+            wins: Math.round(stats.wins ?? 0),
+            losses: Math.round(stats.losses ?? 0),
+            pct: stats.winPercent ?? 0,
+            gb: gb == null ? '—' : gb === 0 ? '—' : parseFloat(gb).toFixed(1),
+          };
+        }).sort((a, b) => b.pct - a.pct).slice(0, 5);
+        if (entries.length) hasData = true;
+        if (isEast) result.east = entries;
+        else result.west = entries;
+      });
+      if (hasData) return result;
+    } catch { /* try next */ }
   }
+
+  /* TheSportsDB fallback — flat list, no conference split */
+  try {
+    const tsdbSeason = season === '2026' ? '2025-2026' : season === '2025' ? '2024-2025' : '2023-2024';
+    const data = await fetchJson(`${API_BASE}/lookuptable.php?l=4387&s=${tsdbSeason}`);
+    const table = (data.table || []).map((row) => ({
+      team: row.strTeam,
+      logo: row.strTeamBadge || '',
+      wins: parseInt(row.intWin) || 0,
+      losses: parseInt(row.intLoss) || 0,
+      pct: (parseInt(row.intWin) || 0) / Math.max((parseInt(row.intWin) || 0) + (parseInt(row.intLoss) || 0), 1),
+      gb: '—',
+    })).sort((a, b) => b.pct - a.pct);
+    if (table.length) return { east: table.slice(0, 5), west: table.slice(5, 10), fallback: true };
+  } catch { /* ignore */ }
+
+  return { east: [], west: [] };
 }
 
-/* Fetch all players for a team from TheSportsDB */
-export async function fetchTeamPlayers(teamId) {
+/* Fetch all players for a team; supplements with name-search if results are thin */
+export async function fetchTeamPlayers(teamId, teamName = null) {
   if (!teamId) return [];
+  const seen = new Set();
+  const players = [];
+
   try {
     const data = await fetchJson(`${API_BASE}/lookup_all_players.php?id=${teamId}`);
-    return data.player || [];
-  } catch {
-    return [];
+    (data.player || []).forEach((p) => { seen.add(p.idPlayer); players.push(p); });
+  } catch { /* continue to fallback */ }
+
+  if (teamName && players.length < 14) {
+    try {
+      const data2 = await fetchJson(`${API_BASE}/searchplayers.php?t=${encodeURIComponent(teamName)}`);
+      (data2.player || []).forEach((p) => {
+        if (!seen.has(p.idPlayer)) { seen.add(p.idPlayer); players.push(p); }
+      });
+    } catch { /* optional */ }
   }
+
+  return players;
 }
 
 /* Search basketball / NBA teams */

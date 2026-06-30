@@ -56,6 +56,27 @@ export function createMatchCard(match, onClick) {
     card.style.cursor = 'pointer';
     card.addEventListener('click', () => onClick(match));
   }
+
+  /* Share button */
+  const shareBtn = document.createElement('button');
+  shareBtn.className = 'match-share-btn';
+  shareBtn.title = 'Share match';
+  shareBtn.textContent = '↗';
+  shareBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const text = `${match.home} ${match.homeScore}–${match.awayScore} ${match.away} | ${match.league} | ${match.date} — via RizkZone`;
+    const share = () => {
+      if (navigator.share) { navigator.share({ text }); return; }
+      navigator.clipboard?.writeText(text).then(() => {
+        shareBtn.textContent = '✓';
+        setTimeout(() => { shareBtn.textContent = '↗'; }, 1500);
+      }).catch(() => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'));
+    };
+    share();
+  });
+  card.style.position = 'relative';
+  card.appendChild(shareBtn);
+
   return card;
 }
 

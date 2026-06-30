@@ -60,6 +60,21 @@
         </div>
 
         <div class="games-grid">
+          <!-- Trivia — accessible to all, no locking -->
+          <div class="game-card" id="trivia-game">
+            <h2>🧠 Sports Trivia</h2>
+            <p style="color:var(--text-muted);margin-bottom:12px;">10 real sports questions fetched live · beat the clock!</p>
+            <div class="game-info">
+              <span class="game-score">Score: <span id="trivia-score">0</span>/10</span>
+              <span id="trivia-status">Ready when you are</span>
+            </div>
+            <div id="trivia-area" style="min-height:160px;padding-top:12px;"></div>
+            <div class="game-controls">
+              <button class="btn btn-primary" id="trivia-start">Start Quiz</button>
+              <button class="btn btn-secondary" id="trivia-reset">Reset</button>
+            </div>
+          </div>
+
           <div class="game-card" id="penalty-game">
             <h2>⚽ Penalty Shootout</h2>
             <p style="color:var(--text-muted);margin-bottom:12px;">Click where you want to shoot. The keeper moves — can you score 5 out of 5?</p>

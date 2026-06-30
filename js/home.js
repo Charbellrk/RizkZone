@@ -194,6 +194,33 @@ function initFacts() {
   document.getElementById('new-fact-btn').addEventListener('click', showFact);
 }
 
+async function loadNews() {
+  const container = document.getElementById('news-feed');
+  if (!container) return;
+  try {
+    const res = await fetch('https://content.guardianapis.com/search?q=football+NBA+basketball&section=sport&page-size=6&api-key=test');
+    const data = await res.json();
+    const articles = data.response?.results || [];
+    if (!articles.length) {
+      container.innerHTML = '<p style="color:var(--text-muted);text-align:center;">No news available right now.</p>';
+      return;
+    }
+    container.innerHTML = `<div class="news-grid">${
+      articles.map((a) => {
+        const date = new Date(a.webPublicationDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        return `
+          <a class="news-card" href="${a.webUrl}" target="_blank" rel="noopener noreferrer">
+            <div class="news-card-meta">${date}</div>
+            <div class="news-card-title">${a.webTitle}</div>
+            <div class="news-card-source">The Guardian ↗</div>
+          </a>`;
+      }).join('')
+    }</div>`;
+  } catch {
+    container.innerHTML = '<p style="color:var(--text-muted);text-align:center;">News temporarily unavailable.</p>';
+  }
+}
+
 updateNavAuth();
 initNav();
 initNightMode();
@@ -205,3 +232,4 @@ initFAQ();
 initFacts();
 loadFeaturedMatch();
 loadUpcoming();
+loadNews();

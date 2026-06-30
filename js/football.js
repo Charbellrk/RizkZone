@@ -287,7 +287,7 @@ async function loadTeamSquad(teamId, teamName) {
   if (!teamPlayerRoster) return;
   teamPlayerRoster.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>Loading squad…</p></div>';
   teamPlayerRoster.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  const players = await fetchTeamPlayers(teamId);
+  const players = await fetchTeamPlayers(teamId, teamName);
   if (!players.length) {
     teamPlayerRoster.innerHTML = `
       <div class="state-message state-empty">
@@ -413,7 +413,7 @@ loadStandings('4328', standingsSeasonSel?.value || null);
 
 /* ── Quick-nav scroll spy ────────────────────────────────────────────────── */
 const quicknavBtns = document.querySelectorAll('.quicknav-btn');
-const sections = ['section-matches', 'section-scorers', 'section-worldcup', 'section-teams', 'section-standings']
+const sections = ['section-matches', 'section-worldcup', 'section-teams', 'section-standings', 'section-scorers']
   .map((id) => document.getElementById(id))
   .filter(Boolean);
 

@@ -56,10 +56,10 @@
       <div class="container">
         <div class="quicknav-btns">
           <a href="#section-matches"   class="quicknav-btn">⚽ Matches</a>
-          <a href="#section-scorers"   class="quicknav-btn">🥇 Top Scorers</a>
           <a href="#section-worldcup"  class="quicknav-btn">🏆 World Cup</a>
           <a href="#section-teams"     class="quicknav-btn">🔍 Team Finder</a>
           <a href="#section-standings" class="quicknav-btn">📊 Standings</a>
+          <a href="#section-scorers"   class="quicknav-btn">🥇 Top Scorers</a>
         </div>
       </div>
     </div>
@@ -98,34 +98,8 @@
       </div>
     </section>
 
-    <section class="alt-bg" id="section-scorers">
-      <div class="container">
-        <div class="section-header" style="text-align:left;">
-          <h2>All-Time Top 5 Scorers</h2>
-          <p>The five highest goal-scorers in football history · <a href="players.html" class="see-more-link">See all 30 in Players page →</a></p>
-        </div>
-        <div class="data-table-wrap">
-          <table class="data-table" id="scorers-table">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Player</th>
-                <th>Country</th>
-                <th>Goals</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="scorers-body"></tbody>
-          </table>
-        </div>
-        <div style="margin-top:14px;text-align:right;">
-          <a href="players.html" class="btn-see-more">View all 30 legends →</a>
-        </div>
-      </div>
-    </section>
-
     <!-- World Cup Winners by Year -->
-    <section id="section-worldcup">
+    <section class="alt-bg" id="section-worldcup">
       <div class="container">
         <div class="section-header" style="text-align:left;margin-bottom:16px;">
           <h2>🏆 FIFA World Cup Winners</h2>
@@ -144,7 +118,7 @@
     </section>
 
     <!-- European Team Finder -->
-    <section class="alt-bg" id="section-teams">
+    <section id="section-teams">
       <div class="container">
         <div class="section-header" style="text-align:left;margin-bottom:12px;">
           <h2>🔍 European Team Finder</h2>
@@ -161,7 +135,7 @@
     </section>
 
     <!-- League Standings -->
-    <section id="section-standings">
+    <section class="alt-bg" id="section-standings">
       <div class="container">
         <div class="section-header" style="text-align:left;margin-bottom:12px;">
           <h2>📊 League Standings</h2>
@@ -183,6 +157,33 @@
         </div>
         <div id="standings-container">
           <div class="spinner-wrap"><div class="spinner"></div><p>Loading standings…</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- All-Time Top 5 Scorers — moved to end -->
+    <section id="section-scorers">
+      <div class="container">
+        <div class="section-header" style="text-align:left;">
+          <h2>🥇 All-Time Top 5 Scorers</h2>
+          <p>The five highest goal-scorers in football history · <a href="players.html" class="see-more-link">See all 30 in Players page →</a></p>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table" id="scorers-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Country</th>
+                <th>Goals</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="scorers-body"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:14px;text-align:right;">
+          <a href="players.html" class="btn-see-more">View all 30 legends →</a>
         </div>
       </div>
     </section>

@@ -8,6 +8,130 @@ import {
 } from './auth.js';
 import { initLiveTicker, initNav, initNightMode } from './ui.js';
 
+/* ── Confetti ────────────────────────────────────────────────────────────── */
+function fireConfetti() {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999';
+  document.body.appendChild(canvas);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const colors = ['#ff6b35','#ffd700','#00d4aa','#4dabf7','#e040fb','#ff4081','#00e676'];
+  const pieces = Array.from({ length: 150 }, () => ({
+    x: Math.random() * canvas.width, y: -20,
+    vx: (Math.random() - 0.5) * 6, vy: 3 + Math.random() * 4,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    w: 8 + Math.random() * 8, h: 4 + Math.random() * 4,
+    rot: Math.random() * 360, rotV: (Math.random() - 0.5) * 8,
+  }));
+  let frame = 0;
+  const tick = () => {
+    if (++frame > 200) { canvas.remove(); return; }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach((p) => {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.rot += p.rotV;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate((p.rot * Math.PI) / 180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+    });
+    requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+/* ── Sports Trivia (OpenTrivia DB) ──────────────────────────────────────── */
+class TriviaGame {
+  constructor() {
+    this.score = 0;
+    this.current = 0;
+    this.questions = [];
+    this.area    = document.getElementById('trivia-area');
+    this.scoreEl = document.getElementById('trivia-score');
+    this.statusEl = document.getElementById('trivia-status');
+  }
+
+  decode(html) {
+    const el = document.createElement('textarea');
+    el.innerHTML = html;
+    return el.value;
+  }
+
+  shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  async start() {
+    this.score = 0; this.current = 0; this.questions = [];
+    this.updateUI();
+    this.statusEl.textContent = 'Loading questions…';
+    this.area.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
+    try {
+      const res = await fetch('https://opentdb.com/api.php?amount=10&category=21&type=multiple');
+      const data = await res.json();
+      if (data.response_code !== 0) throw new Error('No questions returned');
+      this.questions = data.results.map((q) => ({
+        question: this.decode(q.question),
+        correct: this.decode(q.correct_answer),
+        options: this.shuffle([q.correct_answer, ...q.incorrect_answers].map((a) => this.decode(a))),
+        difficulty: q.difficulty,
+      }));
+      this.showQuestion();
+    } catch {
+      this.area.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px 0;">Could not load questions — check your connection and try again.</p>';
+      this.statusEl.textContent = 'Error';
+    }
+  }
+
+  showQuestion() {
+    if (this.current >= this.questions.length) { this.end(); return; }
+    const q = this.questions[this.current];
+    this.statusEl.textContent = `Question ${this.current + 1} / ${this.questions.length} · ${q.difficulty}`;
+    this.area.innerHTML = `
+      <div class="trivia-question">${q.question}</div>
+      <div class="trivia-options">
+        ${q.options.map((opt) => `<button class="trivia-opt" data-answer="${opt.replace(/"/g, '&quot;')}">${opt}</button>`).join('')}
+      </div>`;
+    this.area.querySelectorAll('.trivia-opt').forEach((btn) => {
+      btn.addEventListener('click', () => this.answer(btn, q.correct));
+    });
+  }
+
+  answer(btn, correct) {
+    this.area.querySelectorAll('.trivia-opt').forEach((b) => {
+      b.disabled = true;
+      if (b.dataset.answer === correct) b.classList.add('correct');
+      else if (b === btn) b.classList.add('wrong');
+    });
+    if (btn.dataset.answer === correct) this.score++;
+    this.updateUI();
+    setTimeout(() => { this.current++; this.showQuestion(); }, 1000);
+  }
+
+  end() {
+    const msg = this.score >= 8 ? '🏆 Sports genius!' : this.score >= 6 ? '👏 Great job!' : this.score >= 4 ? '👍 Not bad!' : '📚 Keep learning!';
+    this.area.innerHTML = `
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-size:2.5rem;margin-bottom:12px;">${msg.split(' ')[0]}</div>
+        <div style="font-size:1.4rem;font-weight:700;margin-bottom:8px;">You scored ${this.score} / 10</div>
+        <div style="color:var(--text-muted);">${msg.slice(msg.indexOf(' ') + 1)}</div>
+      </div>`;
+    this.statusEl.textContent = 'Quiz complete!';
+    if (this.score >= 7) fireConfetti();
+  }
+
+  reset() {
+    this.score = 0; this.current = 0; this.questions = [];
+    this.area.innerHTML = '';
+    this.statusEl.textContent = 'Ready when you are';
+    this.updateUI();
+  }
+
+  updateUI() { this.scoreEl.textContent = this.score; }
+}
+
 function setupAccessControl() {
   const session = getSession();
   const penaltyCard = document.getElementById('penalty-game');
@@ -131,6 +255,7 @@ class PenaltyGame {
       this.active = false;
       cancelAnimationFrame(this.animationId);
       this.message = this.score >= 4 ? '🏆 Excellent!' : this.score >= 2 ? '👍 Not bad!' : '😅 Keep practicing!';
+      if (this.score >= 4) fireConfetti();
     } else {
       setTimeout(() => {
         this.message = 'Click the goal to shoot!';
@@ -242,6 +367,7 @@ class FreeThrowGame {
       this.active = false;
       cancelAnimationFrame(this.animationId);
       this.message = this.score >= 8 ? '🏆 MVP!' : this.score >= 5 ? '👍 Solid!' : '😅 Keep shooting!';
+      if (this.score >= 8) fireConfetti();
     } else {
       setTimeout(() => {
         this.message = 'Click when the bar is in the green zone!';
@@ -296,6 +422,11 @@ updateNavAuth();
 initNav();
 initNightMode();
 initLiveTicker();
+
+/* Trivia is always available regardless of guest/login state */
+const trivia = new TriviaGame();
+document.getElementById('trivia-start')?.addEventListener('click', () => trivia.start());
+document.getElementById('trivia-reset')?.addEventListener('click', () => trivia.reset());
 
 if (setupAccessControl()) {
   const penalty = new PenaltyGame(document.getElementById('penalty-canvas'));
