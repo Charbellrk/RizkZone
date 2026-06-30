@@ -63,6 +63,7 @@ const seasonTitle     = document.getElementById('season-leaders-title');
 const seasonSub       = document.getElementById('season-leaders-sub');
 const compPicker      = document.getElementById('competition-picker');
 const compSelect      = document.getElementById('competition-select');
+const seasonSelect    = document.getElementById('season-select');
 
 function renderSeasonLeaders(leaders, statLabel) {
   if (!leaders.length) {
@@ -105,21 +106,24 @@ function renderSeasonLeaders(leaders, statLabel) {
 async function loadSeasonLeaders() {
   seasonGrid.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>Loading live stats…</p></div>';
 
+  const season = seasonSelect?.value || '2025';
+  const seasonLabel = seasonSelect?.selectedOptions[0]?.text || '2024–25';
+
   if (currentSport === 'football') {
     const competition = compSelect?.value || 'eng.1';
     const compName = compSelect?.selectedOptions[0]?.text || 'Premier League';
-    seasonTitle.textContent = `⚡ ${compName} Top Scorers`;
+    seasonTitle.textContent = `⚡ ${compName} Top Scorers — ${seasonLabel}`;
     seasonSub.textContent = 'Live data via ESPN · Updates each matchday';
     compPicker.style.display = '';
 
-    const leaders = await fetchESPNSoccerScorers(competition);
+    const leaders = await fetchESPNSoccerScorers(competition, season);
     renderSeasonLeaders(leaders, 'Goals');
   } else {
-    seasonTitle.textContent = '⚡ NBA Scoring Leaders';
+    seasonTitle.textContent = `⚡ NBA Scoring Leaders — ${seasonLabel}`;
     seasonSub.textContent = 'Live data via ESPN · Points per game this season';
     compPicker.style.display = 'none';
 
-    const leaders = await fetchESPNNBAScorers();
+    const leaders = await fetchESPNNBAScorers(season);
     renderSeasonLeaders(leaders, 'PPG');
   }
 }
@@ -142,7 +146,9 @@ document.querySelectorAll('.toggle-btn').forEach((btn) => {
   });
 });
 
-/* ── Competition picker ──────────────────────────────────────────────────── */
+/* ── Season / competition pickers ───────────────────────────────────────── */
+
+seasonSelect?.addEventListener('change', () => loadSeasonLeaders());
 
 compSelect?.addEventListener('change', () => {
   if (currentSport === 'football') loadSeasonLeaders();

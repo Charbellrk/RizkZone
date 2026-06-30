@@ -332,26 +332,20 @@ async function fetchCoreLeaders(sport, league, season, seasonType, catKeywords) 
 }
 
 /* Football (soccer) top scorers via ESPN Core API */
-export async function fetchESPNSoccerScorers(competition = 'eng.1') {
-  const seasons = ['2025', '2024'];
-  for (const season of seasons) {
-    try {
-      const leaders = await fetchCoreLeaders('soccer', competition, season, '1', ['goal']);
-      if (leaders.length) return leaders;
-    } catch { /* try next season */ }
-  }
+export async function fetchESPNSoccerScorers(competition = 'eng.1', season = '2025') {
+  try {
+    const leaders = await fetchCoreLeaders('soccer', competition, season, '1', ['goal']);
+    if (leaders.length) return leaders;
+  } catch { /* fall through */ }
   return [];
 }
 
 /* NBA scoring leaders via ESPN Core API */
-export async function fetchESPNNBAScorers() {
-  const seasons = ['2025', '2024'];
-  for (const season of seasons) {
-    try {
-      const leaders = await fetchCoreLeaders('basketball', 'nba', season, '2', ['pointspergame', 'point', 'scor']);
-      if (leaders.length) return leaders;
-    } catch { /* try next season */ }
-  }
+export async function fetchESPNNBAScorers(season = '2025') {
+  try {
+    const leaders = await fetchCoreLeaders('basketball', 'nba', season, '2', ['pointspergame', 'point', 'scor']);
+    if (leaders.length) return leaders;
+  } catch { /* fall through */ }
   return [];
 }
 
