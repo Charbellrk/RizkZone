@@ -757,6 +757,43 @@ export async function fetchWC2026AllMatches() {
   } catch { return []; }
 }
 
+/* Featured WC match: live first → closest upcoming → last completed */
+export async function fetchFeaturedWCMatch() {
+  const matches = await fetchWC2026AllMatches();
+  if (!matches.length) return null;
+
+  const now = new Date();
+  const toDateTime = (m) => new Date(`${m.date}T${m.time ? m.time + ':00' : '12:00:00'}Z`);
+
+  const live = matches.find((m) => m.isLive);
+  if (live) return live;
+
+  const upcoming = matches
+    .filter((m) => m.homeScore === '-' && m.awayScore === '-')
+    .map((m) => ({ ...m, _dt: toDateTime(m) }))
+    .filter((m) => m._dt > now)
+    .sort((a, b) => a._dt - b._dt);
+  if (upcoming.length) return upcoming[0];
+
+  const completed = matches
+    .filter((m) => m.homeScore !== '-' || m.awayScore !== '-')
+    .map((m) => ({ ...m, _dt: toDateTime(m) }))
+    .sort((a, b) => b._dt - a._dt);
+  return completed[0] || null;
+}
+
+/* Next N upcoming World Cup matches sorted by date */
+export async function fetchWCUpcomingMatches(limit = 3) {
+  const matches = await fetchWC2026AllMatches();
+  const now = new Date();
+  return matches
+    .filter((m) => m.homeScore === '-' && m.awayScore === '-')
+    .map((m) => ({ ...m, _dt: new Date(`${m.date}T${m.time ? m.time + ':00' : '12:00:00'}Z`) }))
+    .filter((m) => m._dt > now)
+    .sort((a, b) => a._dt - b._dt)
+    .slice(0, limit);
+}
+
 /* Fetch the World Cup final match for a given year from TheSportsDB */
 export async function fetchWorldCupFinal(year) {
   try {

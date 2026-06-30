@@ -1,5 +1,5 @@
 import { updateNavAuth } from './auth.js';
-import { fetchFeaturedMatch, fetchUpcomingMatches } from './api.js';
+import { fetchFeaturedWCMatch, fetchWCUpcomingMatches, fetchUpcomingMatches } from './api.js';
 import { HALL_OF_FAME } from './data/hall-of-fame.js';
 import { SEASON_HIGHLIGHTS } from './data/players-data.js';
 import { getRandomFact } from './data/facts.js';
@@ -62,30 +62,53 @@ function renderHighlights() {
 async function loadFeaturedMatch() {
   const container = document.getElementById('featured-match');
   try {
-    const match = await fetchFeaturedMatch();
+    const match = await fetchFeaturedWCMatch();
     if (!match) {
-      container.innerHTML = '<p class="state-empty">No featured match available today.</p>';
+      container.innerHTML = '<p class="state-empty">No World Cup match available right now.</p>';
       return;
     }
+
+    const isScheduled = match.homeScore === '-' && match.awayScore === '-';
+    const isLive = match.isLive;
+    const statusBadge = isLive
+      ? '<span style="display:inline-block;background:#dc2626;color:#fff;font-size:0.7rem;padding:2px 8px;border-radius:999px;vertical-align:middle;margin-left:6px;animation:pulse 1.5s infinite;">🔴 LIVE</span>'
+      : isScheduled
+        ? '<span style="display:inline-block;background:#2563eb;color:#fff;font-size:0.7rem;padding:2px 8px;border-radius:999px;vertical-align:middle;margin-left:6px;">⏰ Upcoming</span>'
+        : '<span style="display:inline-block;background:#16a34a;color:#fff;font-size:0.7rem;padding:2px 8px;border-radius:999px;vertical-align:middle;margin-left:6px;">✅ FT</span>';
+
+    const scoreDisplay = isScheduled
+      ? `<span class="featured-score">${match.time ? match.time + ' UTC' : 'TBD'}</span>`
+      : `<span class="featured-score">${match.homeScore} - ${match.awayScore}</span>`;
+
     container.innerHTML = `
       <div class="featured-match fade-in">
+        <div style="text-align:center;margin-bottom:8px;">
+          <span style="font-size:0.8rem;font-weight:600;color:var(--accent);letter-spacing:0.05em;">🏆 FIFA WORLD CUP 2026</span>
+          ${statusBadge}
+        </div>
         <div class="featured-teams">
           <span class="featured-team">${match.home}</span>
-          <span class="featured-score">${match.homeScore} - ${match.awayScore}</span>
+          ${scoreDisplay}
           <span class="featured-team">${match.away}</span>
         </div>
-        <div class="featured-meta">${match.league} • ${match.date} ${match.time ? `• ${match.time}` : ''}</div>
+        <div class="featured-meta">${match.date}${match.venue && match.venue !== 'TBD' ? ` • ${match.venue}` : ''}</div>
       </div>
     `;
   } catch {
-    showError(container, 'Could not load featured match.');
+    showError(container, 'Could not load World Cup match.');
   }
 }
 
 async function loadUpcoming() {
   const container = document.getElementById('upcoming-matches');
   try {
-    const matches = await fetchUpcomingMatches(5);
+    const wcMatches = await fetchWCUpcomingMatches(3);
+    let matches = wcMatches;
+    if (matches.length < 3) {
+      const others = await fetchUpcomingMatches(3 - matches.length);
+      matches = [...matches, ...others];
+    }
+    matches = matches.slice(0, 3);
     if (!matches.length) {
       container.innerHTML = '<div class="state-message state-empty"><p>No upcoming matches found.</p></div>';
       return;
@@ -100,7 +123,7 @@ async function loadUpcoming() {
           <span class="match-score">vs</span>
           <span class="team">${m.away}</span>
         </div>
-        <div class="match-meta">${m.date} ${m.time ? `• ${m.time}` : ''}</div>
+        <div class="match-meta">${m.date}${m.time ? ` • ${m.time} UTC` : ''}</div>
       </article>
     `
       )
