@@ -66,25 +66,34 @@
     <section id="section-matches">
       <div class="container">
 
-        <!-- NBA Men 2025-26 Season Results -->
-        <div class="section-header" style="text-align:left;margin-bottom:12px;">
-          <h2>🏆 NBA 2025-26 Season Results</h2>
-          <p id="nba-season-label">Loading NBA games…</p>
-        </div>
-        <div id="nba-season-container">
-          <div class="spinner-wrap"><div class="spinner"></div><p>Fetching 2025-26 NBA season…</p></div>
+        <!-- NBA 2025-26 by Date -->
+        <div class="bball-date-section">
+          <div class="section-header" style="text-align:left;margin-bottom:16px;">
+            <h2>🏀 NBA 2025-26 Games by Date</h2>
+            <p id="nba-day-count-label">Loading NBA games…</p>
+          </div>
+          <div id="nba-day-container">
+            <div class="spinner-wrap"><div class="spinner"></div><p>Fetching NBA games…</p></div>
+          </div>
+          <div class="date-nav">
+            <button class="date-nav-btn" id="nba-day-prev">← Prev Day</button>
+            <input type="date" class="date-nav-input" id="nba-day-picker" aria-label="Select NBA date">
+            <button class="date-nav-btn" id="nba-day-next">Next Day →</button>
+          </div>
         </div>
 
-        <!-- Basketball by Date (WNBA + all basketball) -->
-        <div style="margin-top:36px;padding-top:24px;border-top:1px solid var(--border);">
-          <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px;">🗓 Browse NBA &amp; WNBA by Date</h3>
-          <p id="match-count-label" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:14px;">Loading matches…</p>
+        <!-- WNBA by Date -->
+        <div class="bball-date-section">
+          <div class="section-header" style="text-align:left;margin-bottom:16px;">
+            <h2>🏀 WNBA Games by Date</h2>
+            <p id="match-count-label">Loading matches…</p>
+          </div>
           <div id="matches-container">
-            <div class="spinner-wrap"><div class="spinner"></div><p>Fetching basketball data…</p></div>
+            <div class="spinner-wrap"><div class="spinner"></div><p>Fetching WNBA games…</p></div>
           </div>
           <div class="date-nav" id="nba-date-nav">
             <button class="date-nav-btn" id="nba-prev-day">← Prev Day</button>
-            <input type="date" class="date-nav-input" id="nba-date-picker" aria-label="Select date">
+            <input type="date" class="date-nav-input" id="nba-date-picker" aria-label="Select WNBA date">
             <button class="date-nav-btn" id="nba-next-day">Next Day →</button>
           </div>
         </div>

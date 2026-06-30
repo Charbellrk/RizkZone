@@ -1,11 +1,12 @@
 import { updateNavAuth } from './auth.js';
 import {
   fetchNBAGamesByDate,
+  fetchNBAOnlyGamesByDate,
   fetchRecentNBADate,
-  fetchNBASeasonMatches,
+  fetchRecentNBADateESPN,
   fetchNBAStandings,
-  fetchTeamPlayers,
-  searchNBATeams,
+  fetchNBATeamRosterESPN,
+  searchNBATeamsESPN,
 } from './api.js';
 import { BASKETBALL_SCORERS } from './data/players-data.js';
 import {
@@ -51,9 +52,9 @@ async function loadMatchesForDate(dateStr) {
 }
 
 function shiftDate(dateStr, days) {
-  const d = new Date(dateStr + 'T00:00:00');
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d + days);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 prevDayBtn?.addEventListener('click', () => {
@@ -66,30 +67,50 @@ datePicker?.addEventListener('change', (e) => {
   if (e.target.value) loadMatchesForDate(e.target.value);
 });
 
-/* ── NBA 2025-26 Season Results ───────────────────────────────────────────── */
+/* ── NBA 2025-26 Games by Date ────────────────────────────────────────────── */
 
-const nbaSeasonContainer = document.getElementById('nba-season-container');
-const nbaSeasonLabel     = document.getElementById('nba-season-label');
+const nbaDayContainer   = document.getElementById('nba-day-container');
+const nbaDayCountLabel  = document.getElementById('nba-day-count-label');
+const nbaDayPicker      = document.getElementById('nba-day-picker');
+const nbaDayPrev        = document.getElementById('nba-day-prev');
+const nbaDayNext        = document.getElementById('nba-day-next');
 
-async function loadNBASeasonMatches() {
-  if (!nbaSeasonContainer) return;
-  try {
-    const matches = await fetchNBASeasonMatches(10);
-    if (!matches.length) {
-      nbaSeasonContainer.innerHTML = '<div class="state-message state-empty"><span class="state-icon">📭</span><p>No 2025-26 NBA games found yet.</p></div>';
-      if (nbaSeasonLabel) nbaSeasonLabel.textContent = 'No results yet for this season.';
-      return;
-    }
-    if (nbaSeasonLabel) nbaSeasonLabel.textContent = `Last ${matches.length} completed games · 2025-26 season`;
-    const grid = document.createElement('div');
-    grid.className = 'matches-grid';
-    matches.forEach((m) => grid.appendChild(createMatchCard(m, showMatchModal)));
-    nbaSeasonContainer.innerHTML = '';
-    nbaSeasonContainer.appendChild(grid);
-  } catch {
-    nbaSeasonContainer.innerHTML = '<div class="state-message state-error"><span class="state-icon">⚠</span><p>Could not load 2025-26 season results.</p></div>';
+let nbaDayCurrentDate = '';
+
+function renderNBADayMatches(matches, dateStr) {
+  if (!nbaDayContainer) return;
+  nbaDayContainer.innerHTML = '';
+  if (!matches.length) {
+    showEmpty(nbaDayContainer, `No NBA games on ${dateStr}. Try another day.`);
+    if (nbaDayCountLabel) nbaDayCountLabel.textContent = `No NBA games on ${dateStr}`;
+    return;
   }
+  const grid = document.createElement('div');
+  grid.className = 'matches-grid';
+  matches.forEach((m) => grid.appendChild(createMatchCard(m, showMatchModal)));
+  nbaDayContainer.appendChild(grid);
+  if (nbaDayCountLabel) nbaDayCountLabel.textContent = `${matches.length} game${matches.length !== 1 ? 's' : ''} on ${dateStr}`;
 }
+
+async function loadNBADayMatches(dateStr) {
+  nbaDayCurrentDate = dateStr;
+  if (nbaDayPicker) nbaDayPicker.value = dateStr;
+  showSpinner(nbaDayContainer);
+  if (nbaDayCountLabel) nbaDayCountLabel.textContent = `Loading NBA games for ${dateStr}…`;
+  const matches = await fetchNBAOnlyGamesByDate(dateStr);
+  renderNBADayMatches(matches, dateStr);
+}
+
+nbaDayPrev?.addEventListener('click', () => {
+  if (nbaDayCurrentDate) loadNBADayMatches(shiftDate(nbaDayCurrentDate, -1));
+});
+nbaDayNext?.addEventListener('click', () => {
+  if (nbaDayCurrentDate) loadNBADayMatches(shiftDate(nbaDayCurrentDate, 1));
+});
+nbaDayPicker?.addEventListener('change', (e) => {
+  if (e.target.value) loadNBADayMatches(e.target.value);
+});
+
 
 function renderScorers() {
   const tbody = document.getElementById('scorers-body');
@@ -216,7 +237,7 @@ async function loadBballTeamSquad(teamId, teamName) {
   if (!bballTeamRoster) return;
   bballTeamRoster.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>Loading squad…</p></div>';
   bballTeamRoster.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  const players = await fetchTeamPlayers(teamId, teamName);
+  const players = await fetchNBATeamRosterESPN(teamId);
   if (!players.length) {
     bballTeamRoster.innerHTML = `
       <div class="state-message state-empty">
@@ -238,20 +259,24 @@ function renderBballTeamCards(teams) {
     return;
   }
   bballTeamResults.innerHTML = `<div class="team-search-grid">${
-    teams.map((t) => `
+    teams.map((t) => {
+      const logo = t.logos?.[0]?.href || '';
+      const name = t.displayName || t.name || 'Unknown';
+      const arena = t.venue?.fullName || '';
+      return `
       <div class="team-card">
-        ${t.strTeamBadge
-          ? `<img class="team-card-badge" src="${t.strTeamBadge}" alt="${t.strTeam}" loading="lazy" onerror="this.style.display='none'">`
+        ${logo
+          ? `<img class="team-card-badge" src="${logo}" alt="${name}" loading="lazy" onerror="this.style.display='none'">`
           : '<div class="team-card-badge team-card-badge--empty">🏀</div>'}
         <div class="team-card-info">
-          <div class="team-card-name">${t.strTeam}</div>
-          <span class="team-card-league">${t.strLeague || 'NBA'}</span>
-          <div class="team-card-meta">🌍 ${t.strCountry || 'USA'}</div>
-          ${t.intFormedYear ? `<div class="team-card-meta">🗓 Founded ${t.intFormedYear}</div>` : ''}
-          ${t.strStadium ? `<div class="team-card-meta">🏟 ${t.strStadium}</div>` : ''}
-          <button class="view-squad-btn" data-team-id="${t.idTeam}" data-team-name="${t.strTeam}">🏃 View Squad</button>
+          <div class="team-card-name">${name}</div>
+          <span class="team-card-league">NBA</span>
+          <div class="team-card-meta">🌍 USA</div>
+          ${arena ? `<div class="team-card-meta">🏟 ${arena}</div>` : ''}
+          <button class="view-squad-btn" data-team-id="${t.id}" data-team-name="${name}">🏃 View Squad</button>
         </div>
-      </div>`).join('')
+      </div>`;
+    }).join('')
   }</div>`;
 }
 
@@ -273,7 +298,7 @@ bballTeamInput?.addEventListener('input', (e) => {
   bballSearchTimer = setTimeout(async () => {
     bballTeamResults.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>Searching…</p></div>';
     try {
-      const teams = await searchNBATeams(q);
+      const teams = await searchNBATeamsESPN(q);
       renderBballTeamCards(teams);
     } catch {
       bballTeamResults.innerHTML = '<div class="state-message state-error"><span class="state-icon">⚠</span><p>Search failed. Try again.</p></div>';
@@ -312,6 +337,11 @@ initLiveTicker();
 renderScorers();
 loadNBAStandings(nbaStandingsSeason?.value || '2025');
 
-/* Start from the most recent NBA game date */
+/* Pre-warm NBA team cache so first search is instant */
+searchNBATeamsESPN('__warmup__').catch(() => {});
+
+/* WNBA picker — start from most recent WNBA/basketball date */
 fetchRecentNBADate().then((date) => loadMatchesForDate(date));
-loadNBASeasonMatches();
+
+/* NBA picker — start from NBA Finals date */
+loadNBADayMatches('2026-06-13');

@@ -56,7 +56,8 @@
       <div class="container">
         <div class="quicknav-btns">
           <a href="#section-matches"   class="quicknav-btn">⚽ Matches</a>
-          <a href="#section-worldcup"  class="quicknav-btn">🏆 World Cup</a>
+          <a href="#section-wc2026"    class="quicknav-btn">🌍 WC 2026</a>
+          <a href="#section-worldcup"  class="quicknav-btn">🏆 WC History</a>
           <a href="#section-teams"     class="quicknav-btn">🔍 Team Finder</a>
           <a href="#section-standings" class="quicknav-btn">📊 Standings</a>
           <a href="#section-scorers"   class="quicknav-btn">🥇 Top Scorers</a>
@@ -94,6 +95,42 @@
           <button id="prev-page" disabled>← Previous</button>
           <span class="page-info" id="page-info">Page 1</span>
           <button id="next-page">Next →</button>
+        </div>
+
+        <!-- League date picker -->
+        <div class="bball-date-section" id="league-date-section">
+          <div class="section-header" style="text-align:left;margin-bottom:16px;">
+            <h2 id="league-date-title">⚽ Browse by Date</h2>
+            <p id="league-date-count">Pick a date to see match scores</p>
+          </div>
+          <div id="league-date-container">
+            <div class="state-message" style="color:var(--text-muted);text-align:center;padding:24px;">
+              Select a date below to load matches ↓
+            </div>
+          </div>
+          <div class="date-nav">
+            <button class="date-nav-btn" id="league-date-prev">← Prev Day</button>
+            <input type="date" class="date-nav-input" id="league-date-picker" aria-label="Select match date">
+            <button class="date-nav-btn" id="league-date-next">Next Day →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- World Cup 2026 Live Tracker -->
+    <section id="section-wc2026">
+      <div class="container">
+        <div class="section-header" style="text-align:left;margin-bottom:20px;">
+          <h2>🌍 FIFA World Cup 2026</h2>
+          <p>All matches · Past results &amp; upcoming fixtures · Live from ESPN</p>
+        </div>
+        <div class="controls-bar" style="margin-bottom:20px;">
+          <button class="btn btn-accent wc26-tab active" data-tab="past">✅ Past Results</button>
+          <button class="btn wc26-tab" data-tab="upcoming">📅 Upcoming Fixtures</button>
+          <button class="btn wc26-tab" data-tab="all">📋 All Matches</button>
+        </div>
+        <div id="wc2026-container">
+          <div class="spinner-wrap"><div class="spinner"></div><p>Loading World Cup 2026…</p></div>
         </div>
       </div>
     </section>

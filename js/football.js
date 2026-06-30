@@ -1,5 +1,5 @@
 import { updateNavAuth } from './auth.js';
-import { fetchFootballMatches, searchTeams, fetchLeagueTable, fetchWorldCupFinal, fetchTeamPlayers, fetchTeamTrophies } from './api.js';
+import { fetchFootballMatches, fetchFootballGamesByDate, fetchWC2026AllMatches, searchTeams, fetchLeagueTable, fetchWorldCupFinal, fetchTeamPlayers, fetchTeamTrophies } from './api.js';
 import { FOOTBALL_SCORERS } from './data/players-data.js';
 import {
   showSpinner,
@@ -102,6 +102,7 @@ function renderScorers() {
 
 document.getElementById('league-filter').addEventListener('change', (e) => {
   loadMatches(e.target.value);
+  /* date section reloads separately via its own listener below */
 });
 
 document.getElementById('world-cup-btn').addEventListener('click', () => {
@@ -450,13 +451,164 @@ function reloadStandings() {
 standingsSelect?.addEventListener('change', reloadStandings);
 standingsSeasonSel?.addEventListener('change', reloadStandings);
 
+/* ── League Date Picker ──────────────────────────────────────────────────── */
+
+const leagueDatePicker  = document.getElementById('league-date-picker');
+const leagueDatePrev    = document.getElementById('league-date-prev');
+const leagueDateNext    = document.getElementById('league-date-next');
+const leagueDateCont    = document.getElementById('league-date-container');
+const leagueDateCount   = document.getElementById('league-date-count');
+const leagueDateTitle   = document.getElementById('league-date-title');
+
+let leagueDateCurrent = '';
+
+const LEAGUE_DATE_NAMES = {
+  all: '🌍 All Leagues', premier: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League',
+  laliga: '🇪🇸 La Liga', seriea: '🇮🇹 Serie A',
+  bundesliga: '🇩🇪 Bundesliga', ligue1: '🇫🇷 Ligue 1',
+  champions: '⭐ Champions League', worldcup: '🏆 World Cup',
+};
+
+function shiftDay(dateStr, days) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + days);
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
+
+function getCurrentLeagueKey() {
+  return document.getElementById('league-filter')?.value || 'all';
+}
+
+async function loadLeagueDay(dateStr) {
+  leagueDateCurrent = dateStr;
+  if (leagueDatePicker) leagueDatePicker.value = dateStr;
+  const key = getCurrentLeagueKey();
+  const name = LEAGUE_DATE_NAMES[key] || 'Football';
+  if (leagueDateTitle) leagueDateTitle.textContent = `⚽ ${name} — Browse by Date`;
+  if (leagueDateCount) leagueDateCount.textContent = `Loading matches for ${dateStr}…`;
+  showSpinner(leagueDateCont);
+
+  /* For "All Leagues" pick Premier League as representative */
+  const queryKey = key === 'all' ? 'premier' : key;
+  const matches = await fetchFootballGamesByDate(queryKey, dateStr);
+
+  if (!matches.length) {
+    showEmpty(leagueDateCont, `No matches found on ${dateStr} for ${name}. Try another date.`);
+    if (leagueDateCount) leagueDateCount.textContent = `No matches on ${dateStr}`;
+    return;
+  }
+  const grid = document.createElement('div');
+  grid.className = 'matches-grid';
+  matches.forEach((m) => {
+    const card = createMatchCard(m, showMatchModal);
+    const badge = card.querySelector('.match-league');
+    if (badge) badge.setAttribute('style', leagueBadgeStyle(m.league));
+    grid.appendChild(card);
+  });
+  leagueDateCont.innerHTML = '';
+  leagueDateCont.appendChild(grid);
+  if (leagueDateCount) leagueDateCount.textContent = `${matches.length} match${matches.length !== 1 ? 'es' : ''} on ${dateStr}`;
+}
+
+leagueDatePrev?.addEventListener('click', () => {
+  if (leagueDateCurrent) loadLeagueDay(shiftDay(leagueDateCurrent, -1));
+});
+leagueDateNext?.addEventListener('click', () => {
+  if (leagueDateCurrent) loadLeagueDay(shiftDay(leagueDateCurrent, 1));
+});
+leagueDatePicker?.addEventListener('change', (e) => {
+  if (e.target.value) loadLeagueDay(e.target.value);
+});
+
+/* When league changes, reload the date section with new league */
+document.getElementById('league-filter')?.addEventListener('change', () => {
+  if (leagueDateCurrent) loadLeagueDay(leagueDateCurrent);
+});
+
+/* Default to today */
+const todayStr = new Date().toISOString().split('T')[0];
+loadLeagueDay(todayStr);
+
+/* ── World Cup 2026 ──────────────────────────────────────────────────────── */
+
+const wc2026Container = document.getElementById('wc2026-container');
+let wc2026Matches = [];
+let wc2026Tab = 'past';
+
+function renderWC2026(tab) {
+  wc2026Tab = tab;
+  const today = new Date().toISOString().split('T')[0];
+  let list = wc2026Matches;
+  if (tab === 'past')     list = wc2026Matches.filter((m) => m.date <= today && m.homeScore !== '-');
+  if (tab === 'upcoming') list = wc2026Matches.filter((m) => m.date > today || m.homeScore === '-');
+
+  if (!list.length) {
+    wc2026Container.innerHTML = `<div class="state-message state-empty"><span class="state-icon">📭</span><p>No ${tab === 'past' ? 'past results' : tab === 'upcoming' ? 'upcoming fixtures' : 'matches'} found.</p></div>`;
+    return;
+  }
+
+  /* Group by date */
+  const byDate = {};
+  list.forEach((m) => {
+    if (!byDate[m.date]) byDate[m.date] = [];
+    byDate[m.date].push(m);
+  });
+
+  wc2026Container.innerHTML = Object.entries(byDate).map(([date, ms]) => {
+    const d = new Date(date + 'T12:00:00');
+    const label = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    return `
+      <div class="wc26-day-group">
+        <div class="wc26-day-label">📅 ${label}</div>
+        <div class="matches-grid">
+          ${ms.map((m) => {
+            const done = m.homeScore !== '-';
+            const score = done ? `${m.homeScore} – ${m.awayScore}` : 'vs';
+            const statusBadge = done
+              ? `<span class="wc26-status wc26-status--done">FT</span>`
+              : `<span class="wc26-status wc26-status--soon">${m.status || 'Scheduled'}</span>`;
+            return `
+              <div class="match-card wc26-card">
+                <div class="match-league" style="${leagueBadgeStyle('FIFA World Cup')}">FIFA World Cup 2026</div>
+                <div class="match-teams">
+                  <span class="team">${m.home}</span>
+                  <span class="match-score ${done ? '' : 'match-score--vs'}">${score}</span>
+                  <span class="team">${m.away}</span>
+                </div>
+                <div class="match-meta">${m.venue !== 'TBD' ? `🏟 ${m.venue}` : ''} ${statusBadge}</div>
+              </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+document.querySelectorAll('.wc26-tab').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.wc26-tab').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderWC2026(btn.dataset.tab);
+  });
+});
+
+async function loadWC2026() {
+  if (!wc2026Container) return;
+  wc2026Matches = await fetchWC2026AllMatches();
+  if (!wc2026Matches.length) {
+    wc2026Container.innerHTML = '<div class="state-message state-empty"><span class="state-icon">📭</span><p>World Cup 2026 data unavailable right now.</p></div>';
+    return;
+  }
+  renderWC2026('past');
+}
+
 /* ── Init new sections ───────────────────────────────────────────────────── */
 renderWorldCupWinners();
+loadWC2026();
 loadStandings('4328', standingsSeasonSel?.value || null);
 
 /* ── Quick-nav scroll spy ────────────────────────────────────────────────── */
 const quicknavBtns = document.querySelectorAll('.quicknav-btn');
-const sections = ['section-matches', 'section-worldcup', 'section-teams', 'section-standings', 'section-scorers']
+const sections = ['section-matches', 'section-wc2026', 'section-worldcup', 'section-teams', 'section-standings', 'section-scorers']
   .map((id) => document.getElementById(id))
   .filter(Boolean);
 

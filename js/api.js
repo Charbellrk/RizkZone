@@ -500,47 +500,207 @@ export async function fetchESPNSoccerRoster(teamName, leagueName) {
 
 /* Fetch an NBA team's roster via ESPN */
 export async function fetchNBATeamRosterESPN(teamId) {
-  const data = await fetchJson(`${ESPN_BASE}/basketball/nba/teams/${teamId}/roster`);
-  const raw = data.athletes || (data.roster?.entries || []).map((e) => e.athlete) || [];
-  return raw.filter(Boolean).map((a) => ({
-    strPlayer: a.displayName || 'Unknown',
-    strPosition: a.position?.displayName || a.position?.name || '',
-    strNationality: a.birthPlace?.country || '',
-    strThumb: a.headshot?.href || '',
-    strCutout: '',
-    idPlayer: `espn_${a.id || Math.random()}`,
-  }));
-}
-
-/* Search NBA teams via ESPN (guaranteed NBA-only) */
-export async function searchNBATeamsESPN(query) {
-  if (!query || query.trim().length < 2) return [];
-  const q = query.trim().toLowerCase();
-  const data = await fetchJson(`${ESPN_BASE}/basketball/nba/teams?limit=100`);
-  const allTeams = (data.sports?.[0]?.leagues?.[0]?.teams || []).map((t) => t.team || t);
-  return allTeams.filter(
-    (t) =>
-      (t.displayName || '').toLowerCase().includes(q) ||
-      (t.location || '').toLowerCase().includes(q) ||
-      (t.abbreviation || '').toLowerCase().includes(q)
-  ).slice(0, 8);
-}
-
-/* Fetch all basketball games on a specific date (NBA + WNBA) */
-export async function fetchNBAGamesByDate(dateStr) {
   try {
-    const data = await fetchJson(`${API_BASE}/eventsday.php?d=${dateStr}&s=Basketball`);
-    return (data.events || []).map(normalizeEvent);
+    const data = await fetchJson(`${ESPN_BASE}/basketball/nba/teams/${teamId}/roster`);
+    let raw = data.athletes || [];
+    if (!raw.length) raw = (data.roster?.entries || []).map((e) => e.athlete);
+    return raw.filter(Boolean).map((a) => ({
+      strPlayer: a.displayName || a.fullName || 'Unknown',
+      strPosition: a.position?.displayName || a.position?.name || '',
+      strNationality: a.birthPlace?.country || a.citizenship || '',
+      strThumb: a.headshot?.href || '',
+      strCutout: '',
+      idPlayer: `espn_${a.id || Math.random()}`,
+    }));
   } catch { return []; }
 }
 
-/* Return the date of the most recent completed NBA game */
+/* Cache of all 30 NBA teams extracted from standings (has CORS) */
+let nbaTeamListCache = null;
+
+async function loadAllNBATeams() {
+  if (nbaTeamListCache) return nbaTeamListCache;
+  const data = await fetchJson(
+    'https://site.web.api.espn.com/apis/v2/sports/basketball/nba/standings?season=2025&seasontype=2&type=0'
+  );
+  const teams = [];
+  for (const group of (data.children || [])) {
+    for (const entry of (group.standings?.entries || [])) {
+      const t = entry.team || {};
+      if (t.id) teams.push({
+        id: t.id,
+        displayName: t.displayName || '',
+        location: t.location || '',
+        abbreviation: t.abbreviation || '',
+        logos: t.logos || [],
+      });
+    }
+  }
+  nbaTeamListCache = teams;
+  return teams;
+}
+
+/* Search NBA teams via ESPN standings (CORS-safe) */
+export async function searchNBATeamsESPN(query) {
+  if (!query || query.trim().length < 2) return [];
+  try {
+    const q = query.trim().toLowerCase();
+    const allTeams = await loadAllNBATeams();
+    return allTeams.filter(
+      (t) =>
+        t.displayName.toLowerCase().includes(q) ||
+        t.location.toLowerCase().includes(q) ||
+        t.abbreviation.toLowerCase().includes(q)
+    ).slice(0, 8);
+  } catch { return []; }
+}
+
+/* Fetch only WNBA games on a specific date */
+export async function fetchNBAGamesByDate(dateStr) {
+  try {
+    const data = await fetchJson(`${API_BASE}/eventsday.php?d=${dateStr}&s=Basketball`);
+    return (data.events || [])
+      .filter((e) => (e.strLeague || '').toUpperCase().includes('WNBA'))
+      .map(normalizeEvent);
+  } catch { return []; }
+}
+
+/* Fetch NBA men's games on a specific date via ESPN */
+export async function fetchNBAOnlyGamesByDate(dateStr) {
+  try {
+    const espnDate = dateStr.replace(/-/g, '');
+    const data = await fetchJson(`${ESPN_BASE}/basketball/nba/scoreboard?dates=${espnDate}&limit=20`);
+    return (data.events || []).map((e) => {
+      const comp = e.competitions?.[0];
+      if (!comp) return null;
+      const home = comp.competitors?.find((c) => c.homeAway === 'home') || {};
+      const away = comp.competitors?.find((c) => c.homeAway === 'away') || {};
+      const state = comp.status?.type?.state || '';
+      const isLive = state === 'in';
+      const done = state === 'post' || !!comp.status?.type?.completed;
+      return {
+        id: e.id,
+        home: home.team?.displayName || 'TBD',
+        away: away.team?.displayName || 'TBD',
+        homeScore: (done || isLive) ? (home.score ?? '-') : '-',
+        awayScore: (done || isLive) ? (away.score ?? '-') : '-',
+        date: (e.date || '').split('T')[0],
+        time: '',
+        league: 'NBA',
+        leagueId: '4387',
+        venue: comp.venue?.fullName || 'TBD',
+        status: comp.status?.type?.shortDetail || (done ? 'Final' : 'Scheduled'),
+        isLive,
+        progress: isLive ? (comp.status?.displayClock || '') : '',
+        thumb: home.team?.logo || '',
+        sport: 'Basketball',
+      };
+    }).filter(Boolean);
+  } catch { return []; }
+}
+
+/* Return the date of the most recent completed NBA game (TheSportsDB) */
 export async function fetchRecentNBADate() {
   try {
     const events = await fetchLeaguePastEvents('4387', 3);
     if (events.length) return events[0].date;
   } catch { /* fall through */ }
   return new Date().toISOString().split('T')[0];
+}
+
+/* Return the date of the most recent NBA game via ESPN */
+export async function fetchRecentNBADateESPN() {
+  try {
+    const data = await fetchJson(`${ESPN_BASE}/basketball/nba/scoreboard?limit=5`);
+    const dates = (data.events || [])
+      .map((e) => (e.date || '').split('T')[0])
+      .filter(Boolean)
+      .sort((a, b) => new Date(b) - new Date(a));
+    if (dates[0]) return dates[0];
+  } catch { /* fall through */ }
+  /* Fallback: most recent from TheSportsDB */
+  return fetchRecentNBADate();
+}
+
+/* ESPN soccer slug map for date-based queries */
+const LEAGUE_KEY_TO_ESPN_SLUG = {
+  premier:    'eng.1',
+  laliga:     'esp.1',
+  seriea:     'ita.1',
+  bundesliga: 'ger.1',
+  ligue1:     'fra.1',
+  champions:  'uefa.champions',
+  worldcup:   'fifa.world',
+};
+
+/* Parse an ESPN soccer scoreboard response into normalized events */
+function parseESPNSoccerDay(events, leagueName) {
+  return (events || []).map((e) => {
+    const comp = e.competitions?.[0];
+    if (!comp) return null;
+    const home = comp.competitors?.find((c) => c.homeAway === 'home') || {};
+    const away = comp.competitors?.find((c) => c.homeAway === 'away') || {};
+    const state = comp.status?.type?.state || '';
+    const done  = state === 'post' || !!comp.status?.type?.completed;
+    const live  = state === 'in';
+    return {
+      id: e.id,
+      home: home.team?.displayName || 'TBD',
+      away: away.team?.displayName || 'TBD',
+      homeScore: (done || live) ? (home.score ?? '-') : '-',
+      awayScore: (done || live) ? (away.score ?? '-') : '-',
+      date: (e.date || '').split('T')[0],
+      time: (e.date || '').split('T')[1]?.slice(0, 5) || '',
+      league: leagueName || e.name || 'Football',
+      leagueId: '',
+      venue: comp.venue?.fullName || 'TBD',
+      status: comp.status?.type?.shortDetail || (done ? 'FT' : 'Scheduled'),
+      isLive: live,
+      progress: live ? (comp.status?.displayClock || '') : '',
+      thumb: home.team?.logo || '',
+      sport: 'Soccer',
+    };
+  }).filter(Boolean);
+}
+
+/* Fetch football matches for a given league key and date via ESPN */
+export async function fetchFootballGamesByDate(leagueKey, dateStr) {
+  const slug = LEAGUE_KEY_TO_ESPN_SLUG[leagueKey];
+  if (!slug) return [];
+  try {
+    const espnDate = dateStr.replace(/-/g, '');
+    const data = await fetchJson(`${ESPN_BASE}/soccer/${slug}/scoreboard?dates=${espnDate}&limit=20`);
+    const leagueNames = {
+      premier: 'Premier League', laliga: 'La Liga', seriea: 'Serie A',
+      bundesliga: 'Bundesliga', ligue1: 'Ligue 1', champions: 'Champions League',
+      worldcup: 'FIFA World Cup 2026',
+    };
+    return parseESPNSoccerDay(data.events, leagueNames[leagueKey] || 'Football');
+  } catch { return []; }
+}
+
+/* Fetch ALL World Cup 2026 matches (past + upcoming) via ESPN */
+export async function fetchWC2026AllMatches() {
+  try {
+    const groups = [];
+    /* ESPN paginates by week; fetch a broad range covering the tournament */
+    const dates = [
+      '20260611','20260615','20260619','20260622','20260625',
+      '20260628','20260701','20260704','20260707','20260710',
+      '20260714','20260719',
+    ];
+    const results = await Promise.allSettled(
+      dates.map((d) => fetchJson(`${ESPN_BASE}/soccer/fifa.world/scoreboard?dates=${d}&limit=10`))
+    );
+    const seen = new Set();
+    for (const r of results) {
+      if (r.status !== 'fulfilled') continue;
+      for (const evt of parseESPNSoccerDay(r.value.events, 'FIFA World Cup 2026')) {
+        if (!seen.has(evt.id)) { seen.add(evt.id); groups.push(evt); }
+      }
+    }
+    return groups.sort((a, b) => new Date(a.date) - new Date(b.date));
+  } catch { return []; }
 }
 
 /* Fetch the World Cup final match for a given year from TheSportsDB */

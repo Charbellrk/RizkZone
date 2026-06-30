@@ -2216,6 +2216,47 @@ body.night-mode .quicknav-btn.active {
 }
 .match-share-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+/* ── World Cup 2026 ──────────────────────────────────────────────────────── */
+.wc26-tab { margin-right: 8px; margin-bottom: 8px; }
+.wc26-tab.active { background: var(--accent); color: #fff; }
+.wc26-day-group { margin-bottom: 32px; }
+.wc26-day-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.wc26-card { cursor: default; }
+.wc26-status {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+.wc26-status--done { background: #22c55e22; color: #16a34a; }
+.wc26-status--soon { background: var(--accent-light, #3b82f620); color: var(--accent); }
+.match-score--vs { color: var(--text-muted); font-size: 0.9rem; }
+
+/* ── Basketball date sections ────────────────────────────────────────────── */
+.bball-date-section {
+  margin-top: 48px;
+  padding-top: 36px;
+  border-top: 2px solid var(--border);
+}
+.bball-date-section .section-header h2 {
+  font-size: 1.6rem;
+}
+.bball-date-section .section-header p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
 /* ── AI Chatbot ──────────────────────────────────────────────────────────── */
 .chatbot-wrap {
   max-width: 720px;
