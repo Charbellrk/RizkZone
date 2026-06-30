@@ -383,6 +383,40 @@ export function initNav() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeMenu();
   });
+
+  // ── Quicknav scroll arrows ───────────────────────────────────────────────
+  const quicknavEl   = document.querySelector('.page-quicknav');
+  const quicknavBtns = document.querySelector('.quicknav-btns');
+  if (quicknavEl && quicknavBtns) {
+    quicknavEl.style.position = 'relative';
+
+    const leftArrow  = document.createElement('button');
+    leftArrow.className  = 'quicknav-arrow quicknav-arrow-left qn-hidden';
+    leftArrow.setAttribute('aria-label', 'Scroll left');
+    leftArrow.innerHTML  = '‹';
+
+    const rightArrow = document.createElement('button');
+    rightArrow.className = 'quicknav-arrow quicknav-arrow-right';
+    rightArrow.setAttribute('aria-label', 'Scroll right');
+    rightArrow.innerHTML = '›';
+
+    quicknavEl.appendChild(leftArrow);
+    quicknavEl.appendChild(rightArrow);
+
+    const updateArrows = () => {
+      const sl  = quicknavBtns.scrollLeft;
+      const max = quicknavBtns.scrollWidth - quicknavBtns.clientWidth;
+      leftArrow.classList.toggle('qn-hidden',  sl <= 4);
+      rightArrow.classList.toggle('qn-hidden', sl >= max - 4);
+    };
+
+    updateArrows();
+    quicknavBtns.addEventListener('scroll', updateArrows, { passive: true });
+    window.addEventListener('resize', updateArrows);
+
+    leftArrow.addEventListener('click',  () => quicknavBtns.scrollBy({ left: -160, behavior: 'smooth' }));
+    rightArrow.addEventListener('click', () => quicknavBtns.scrollBy({ left:  160, behavior: 'smooth' }));
+  }
 }
 
 export function initNightMode() {
