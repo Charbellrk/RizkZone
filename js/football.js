@@ -1,5 +1,5 @@
 import { updateNavAuth } from './auth.js';
-import { fetchFootballMatches, searchTeams, fetchLeagueTable, fetchWorldCupFinal } from './api.js';
+import { fetchFootballMatches, searchTeams, fetchLeagueTable, fetchWorldCupFinal, fetchTeamPlayers } from './api.js';
 import { FOOTBALL_SCORERS } from './data/players-data.js';
 import {
   showSpinner,
@@ -250,6 +250,55 @@ const teamSearchInput   = document.getElementById('team-search-input');
 const teamSearchResults = document.getElementById('team-search-results');
 let teamSearchTimer = null;
 
+const teamPlayerRoster = document.getElementById('team-player-roster');
+
+function getInitials(name = '') {
+  return name.split(' ').map((w) => w[0] || '').slice(0, 2).join('').toUpperCase();
+}
+
+function renderPlayerRoster(players, teamName) {
+  return `
+    <div class="squad-header">
+      <h3>Squad — ${teamName}</h3>
+      <span class="squad-count">${players.length} player${players.length !== 1 ? 's' : ''}</span>
+    </div>
+    <div class="player-roster-grid">
+      ${players.map((p) => {
+        const initials = getInitials(p.strPlayer);
+        const photo = p.strThumb || p.strCutout || '';
+        return `
+          <div class="player-card">
+            <div class="player-card-photo">
+              ${photo
+                ? `<img src="${photo}" alt="${p.strPlayer}" loading="lazy" onerror="this.parentElement.innerHTML='<span class=\\"player-initials\\">${initials}</span>'">`
+                : `<span class="player-initials">${initials}</span>`}
+            </div>
+            <div class="player-card-info">
+              <div class="player-name">${p.strPlayer || 'Unknown'}</div>
+              ${p.strPosition ? `<div class="player-pos">${p.strPosition}</div>` : ''}
+              ${p.strNationality ? `<div class="player-nat">${p.strNationality}</div>` : ''}
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+async function loadTeamSquad(teamId, teamName) {
+  if (!teamPlayerRoster) return;
+  teamPlayerRoster.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>Loading squad…</p></div>';
+  teamPlayerRoster.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const players = await fetchTeamPlayers(teamId);
+  if (!players.length) {
+    teamPlayerRoster.innerHTML = `
+      <div class="state-message state-empty">
+        <span class="state-icon">📭</span>
+        <p>No player data available for ${teamName}.</p>
+      </div>`;
+    return;
+  }
+  teamPlayerRoster.innerHTML = renderPlayerRoster(players, teamName);
+}
+
 function renderTeamCards(teams) {
   if (!teams.length) {
     teamSearchResults.innerHTML = `
@@ -271,15 +320,22 @@ function renderTeamCards(teams) {
           <div class="team-card-meta">🌍 ${t.strCountry || '—'}</div>
           ${t.intFormedYear ? `<div class="team-card-meta">🗓 Founded ${t.intFormedYear}</div>` : ''}
           ${t.strStadium ? `<div class="team-card-meta">🏟 ${t.strStadium}</div>` : ''}
+          <button class="view-squad-btn" data-team-id="${t.idTeam}" data-team-name="${t.strTeam}">🏃 View Squad</button>
         </div>
       </div>`).join('')
   }</div>`;
 }
 
+teamSearchResults?.addEventListener('click', (e) => {
+  const btn = e.target.closest('.view-squad-btn');
+  if (!btn) return;
+  loadTeamSquad(btn.dataset.teamId, btn.dataset.teamName);
+});
+
 teamSearchInput?.addEventListener('input', (e) => {
   clearTimeout(teamSearchTimer);
   const q = e.target.value;
-  if (!q.trim()) { teamSearchResults.innerHTML = ''; return; }
+  if (!q.trim()) { teamSearchResults.innerHTML = ''; if (teamPlayerRoster) teamPlayerRoster.innerHTML = ''; return; }
   if (q.trim().length < 2) return;
   teamSearchTimer = setTimeout(async () => {
     teamSearchResults.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>Searching…</p></div>';
@@ -296,6 +352,7 @@ teamSearchInput?.addEventListener('input', (e) => {
 
 const standingsContainer = document.getElementById('standings-container');
 const standingsSelect    = document.getElementById('standings-league-select');
+const standingsSeasonSel = document.getElementById('standings-season-select');
 
 function renderStandings(table) {
   if (!table.length) {
@@ -337,14 +394,37 @@ function renderStandings(table) {
     </div>`;
 }
 
-async function loadStandings(leagueId) {
+async function loadStandings(leagueId, season) {
   standingsContainer.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>Loading standings…</p></div>';
-  const table = await fetchLeagueTable(leagueId);
+  const table = await fetchLeagueTable(leagueId, season || null);
   renderStandings(table);
 }
 
-standingsSelect?.addEventListener('change', (e) => loadStandings(e.target.value));
+function reloadStandings() {
+  loadStandings(standingsSelect?.value || '4328', standingsSeasonSel?.value || null);
+}
+
+standingsSelect?.addEventListener('change', reloadStandings);
+standingsSeasonSel?.addEventListener('change', reloadStandings);
 
 /* ── Init new sections ───────────────────────────────────────────────────── */
 renderWorldCupWinners();
-loadStandings('4328');
+loadStandings('4328', standingsSeasonSel?.value || null);
+
+/* ── Quick-nav scroll spy ────────────────────────────────────────────────── */
+const quicknavBtns = document.querySelectorAll('.quicknav-btn');
+const sections = ['section-matches', 'section-scorers', 'section-worldcup', 'section-teams', 'section-standings']
+  .map((id) => document.getElementById(id))
+  .filter(Boolean);
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      quicknavBtns.forEach((btn) => btn.classList.remove('active'));
+      const active = document.querySelector(`.quicknav-btn[href="#${entry.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px' });
+
+sections.forEach((s) => observer.observe(s));

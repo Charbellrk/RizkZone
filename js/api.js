@@ -281,19 +281,76 @@ export async function searchTeams(query) {
     .slice(0, 12);
 }
 
-/* Fetch current season league standings table */
-export async function fetchLeagueTable(leagueId) {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const startYear = month >= 8 ? year : year - 1;
-  const season = `${startYear}-${startYear + 1}`;
+/* Fetch league standings table; pass explicit season string like "2024-2025" or null to auto-detect */
+export async function fetchLeagueTable(leagueId, season = null) {
+  if (!season) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const startYear = month >= 8 ? year : year - 1;
+    season = `${startYear}-${startYear + 1}`;
+  }
   try {
     const data = await fetchJson(`${API_BASE}/lookuptable.php?l=${leagueId}&s=${season}`);
     return data.table || [];
   } catch {
     return [];
   }
+}
+
+/* Fetch NBA standings (top 5 East + top 5 West) from ESPN */
+export async function fetchNBAStandings(espnSeason = null) {
+  const url = espnSeason
+    ? `${ESPN_BASE}/basketball/nba/standings?season=${espnSeason}`
+    : `${ESPN_BASE}/basketball/nba/standings`;
+  try {
+    const data = await fetchJson(url);
+    const result = { east: [], west: [] };
+    (data.children || []).forEach((conf) => {
+      const name = (conf.name || conf.abbreviation || '').toLowerCase();
+      const isEast = name.includes('east');
+      const entries = (conf.standings?.entries || []).map((e) => {
+        const stats = {};
+        (e.stats || []).forEach((s) => { stats[s.name] = s.value; });
+        const gb = stats.gamesBehind ?? stats.divisionGamesBehind ?? null;
+        return {
+          team: e.team?.displayName || 'Unknown',
+          logo: e.team?.logos?.[0]?.href || '',
+          wins: Math.round(stats.wins ?? 0),
+          losses: Math.round(stats.losses ?? 0),
+          pct: stats.winPercent ?? 0,
+          gb: gb == null ? '—' : gb === 0 ? '—' : parseFloat(gb).toFixed(1),
+        };
+      })
+      .sort((a, b) => b.pct - a.pct)
+      .slice(0, 5);
+      if (isEast) result.east = entries;
+      else result.west = entries;
+    });
+    return result;
+  } catch {
+    return { east: [], west: [] };
+  }
+}
+
+/* Fetch all players for a team from TheSportsDB */
+export async function fetchTeamPlayers(teamId) {
+  if (!teamId) return [];
+  try {
+    const data = await fetchJson(`${API_BASE}/lookup_all_players.php?id=${teamId}`);
+    return data.player || [];
+  } catch {
+    return [];
+  }
+}
+
+/* Search basketball / NBA teams */
+export async function searchBasketballTeams(query) {
+  if (!query || query.trim().length < 2) return [];
+  const data = await fetchJson(`${API_BASE}/searchteams.php?t=${encodeURIComponent(query.trim())}`);
+  return (data.teams || [])
+    .filter((t) => t.strSport === 'Basketball')
+    .slice(0, 8);
 }
 
 /* Fetch the World Cup final match for a given year from TheSportsDB */

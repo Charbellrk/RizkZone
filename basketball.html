@@ -46,12 +46,24 @@
   <header class="page-header">
     <div class="container">
       <h1>🏀 Basketball</h1>
-      <p>Latest NBA results and all-time scoring legends</p>
+      <p>Latest NBA results, standings, and all-time scoring legends</p>
     </div>
   </header>
 
   <main>
-    <section>
+    <!-- Quick-nav jump buttons -->
+    <div class="page-quicknav" id="page-quicknav">
+      <div class="container">
+        <div class="quicknav-btns">
+          <a href="#section-matches"   class="quicknav-btn">🏀 Matches</a>
+          <a href="#section-scorers"   class="quicknav-btn">🥇 Top Scorers</a>
+          <a href="#section-standings" class="quicknav-btn">📊 NBA Standings</a>
+          <a href="#section-teams"     class="quicknav-btn">🔍 Team Finder</a>
+        </div>
+      </div>
+    </div>
+
+    <section id="section-matches">
       <div class="container">
         <div class="section-header" style="text-align:left;margin-bottom:20px;">
           <h2>Latest NBA Matches</h2>
@@ -70,7 +82,7 @@
       </div>
     </section>
 
-    <section class="alt-bg">
+    <section class="alt-bg" id="section-scorers">
       <div class="container">
         <div class="section-header" style="text-align:left;">
           <h2>All-Time Top 5 Scorers</h2>
@@ -95,12 +107,49 @@
         </div>
       </div>
     </section>
+
+    <!-- NBA Standings -->
+    <section id="section-standings">
+      <div class="container">
+        <div class="section-header" style="text-align:left;margin-bottom:12px;">
+          <h2>📊 NBA Standings</h2>
+          <p>Top 5 per conference · Live from ESPN</p>
+        </div>
+        <div class="controls-bar" style="margin-bottom:20px;">
+          <select class="select-input" id="nba-standings-season" aria-label="Select NBA season">
+            <option value="2026">2025–26</option>
+            <option value="2025" selected>2024–25</option>
+            <option value="2024">2023–24</option>
+          </select>
+        </div>
+        <div id="nba-standings-container">
+          <div class="spinner-wrap"><div class="spinner"></div><p>Loading standings…</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NBA Team Finder -->
+    <section class="alt-bg" id="section-teams">
+      <div class="container">
+        <div class="section-header" style="text-align:left;margin-bottom:12px;">
+          <h2>🔍 NBA Team Finder</h2>
+          <p>Search any NBA team — see their full roster and player details · Live from TheSportsDB</p>
+        </div>
+        <div class="controls-bar">
+          <input type="search" class="search-input" id="bball-team-search-input"
+            placeholder="e.g. Lakers, Celtics, Warriors…"
+            aria-label="Search NBA teams" autocomplete="off">
+        </div>
+        <div id="bball-team-search-results" style="margin-top:16px;"></div>
+        <div id="bball-team-roster" style="margin-top:20px;"></div>
+      </div>
+    </section>
   </main>
 
   <footer class="footer">
     <div class="container">
       <div class="footer-bottom">
-        © 2026 RizkZone. NBA data via TheSportsDB. &nbsp;|&nbsp;
+        © 2026 RizkZone. NBA data via TheSportsDB &amp; ESPN. &nbsp;|&nbsp;
         📧 <a href="mailto:charbel04rk@gmail.com">charbel04rk@gmail.com</a> &nbsp;|&nbsp;
         💬 WhatsApp: <a href="https://wa.me/96170267806">70/267806</a>
       </div>

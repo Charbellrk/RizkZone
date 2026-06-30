@@ -51,7 +51,20 @@
   </header>
 
   <main>
-    <section>
+    <!-- Quick-nav jump buttons -->
+    <div class="page-quicknav" id="page-quicknav">
+      <div class="container">
+        <div class="quicknav-btns">
+          <a href="#section-matches"   class="quicknav-btn">⚽ Matches</a>
+          <a href="#section-scorers"   class="quicknav-btn">🥇 Top Scorers</a>
+          <a href="#section-worldcup"  class="quicknav-btn">🏆 World Cup</a>
+          <a href="#section-teams"     class="quicknav-btn">🔍 Team Finder</a>
+          <a href="#section-standings" class="quicknav-btn">📊 Standings</a>
+        </div>
+      </div>
+    </div>
+
+    <section id="section-matches">
       <div class="container">
         <div class="controls-bar">
           <select class="select-input" id="league-filter" aria-label="Filter by league">
@@ -85,7 +98,7 @@
       </div>
     </section>
 
-    <section class="alt-bg">
+    <section class="alt-bg" id="section-scorers">
       <div class="container">
         <div class="section-header" style="text-align:left;">
           <h2>All-Time Top 5 Scorers</h2>
@@ -112,7 +125,7 @@
     </section>
 
     <!-- World Cup Winners by Year -->
-    <section>
+    <section id="section-worldcup">
       <div class="container">
         <div class="section-header" style="text-align:left;margin-bottom:16px;">
           <h2>🏆 FIFA World Cup Winners</h2>
@@ -131,11 +144,11 @@
     </section>
 
     <!-- European Team Finder -->
-    <section class="alt-bg">
+    <section class="alt-bg" id="section-teams">
       <div class="container">
         <div class="section-header" style="text-align:left;margin-bottom:12px;">
           <h2>🔍 European Team Finder</h2>
-          <p>Search any club — see their league, country and founding year · Live from TheSportsDB</p>
+          <p>Search any club — see their league, country, founding year and full squad · Live from TheSportsDB</p>
         </div>
         <div class="controls-bar">
           <input type="search" class="search-input" id="team-search-input"
@@ -143,15 +156,16 @@
             aria-label="Search teams" autocomplete="off">
         </div>
         <div id="team-search-results" style="margin-top:16px;"></div>
+        <div id="team-player-roster" style="margin-top:20px;"></div>
       </div>
     </section>
 
-    <!-- League Standings (interesting addition) -->
-    <section>
+    <!-- League Standings -->
+    <section id="section-standings">
       <div class="container">
         <div class="section-header" style="text-align:left;margin-bottom:12px;">
-          <h2>📊 Current League Standings</h2>
-          <p>Live table for the selected league · Updated from TheSportsDB</p>
+          <h2>📊 League Standings</h2>
+          <p>Full table for the selected league and season · Live from TheSportsDB</p>
         </div>
         <div class="controls-bar" style="margin-bottom:16px;">
           <select class="select-input" id="standings-league-select" aria-label="Select league for standings">
@@ -160,6 +174,11 @@
             <option value="4331">🇩🇪 Bundesliga</option>
             <option value="4332">🇮🇹 Serie A</option>
             <option value="4334">🇫🇷 Ligue 1</option>
+          </select>
+          <select class="select-input" id="standings-season-select" aria-label="Select season for standings">
+            <option value="2025-2026">2025–26</option>
+            <option value="2024-2025" selected>2024–25</option>
+            <option value="2023-2024">2023–24</option>
           </select>
         </div>
         <div id="standings-container">
