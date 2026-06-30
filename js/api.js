@@ -325,7 +325,9 @@ async function fetchCoreLeaders(sport, league, season, seasonType, catKeywords) 
     name: athletes[i]?.displayName || athletes[i]?.fullName || 'Unknown',
     team: teams[i]?.shortDisplayName || teams[i]?.displayName || 'N/A',
     value: e.value ?? 0,
-    displayValue: String(Math.round(e.value ?? 0)),
+    displayValue: /^\d+(\.\d+)?$/.test((e.displayValue || '').trim())
+      ? e.displayValue.trim()
+      : String(Math.round(e.value ?? 0)),
   }));
 }
 
