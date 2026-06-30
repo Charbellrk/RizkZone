@@ -266,35 +266,6 @@ body.night-mode .btn-auth {
   border-color: transparent;
 }
 
-/* Navbar Ask-AI Button */
-.nav-chat-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 8px;
-  padding: 7px 13px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #fff;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s;
-  letter-spacing: 0.01em;
-}
-
-.nav-chat-btn:hover {
-  background: rgba(255, 255, 255, 0.28);
-}
-
-body.night-mode .nav-chat-btn {
-  background: var(--bg-elevated);
-  border-color: var(--border);
-  color: var(--text-primary);
-}
-
-body.night-mode .nav-chat-btn:hover {
-  background: var(--bg-card);
-}
-
 /* Navbar Floating Chat Panel */
 .nav-chatbox {
   position: fixed;
@@ -2174,8 +2145,6 @@ tr.standing-rel td:first-child { border-left: 3px solid #e53e3e; }
 @media (max-width: 768px) {
   /* Hide login button on mobile — it's in the mobile menu */
   .btn-auth { display: none; }
-  /* Hide navbar Ask-AI button on mobile — chatbot is on the page */
-  .nav-chat-btn { display: none; }
 }
 
 /* ── Page Quick-Nav ─────────────────────────────────────────────────────── */
